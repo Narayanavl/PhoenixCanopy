@@ -1,0 +1,410 @@
+﻿@using Microsoft.JSInterop
+@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+<div class="layout-wrapper" @onclick="CloseDropdown"
+     @onkeydown="HandleKeyDown">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">
+            @* <img alt="brand-image" height="40" class="sidebar-logo-white" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAS4AAABDBAMAAADQc/VAAAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAABJQTFRFAAAA////////AAAA////AAAAw97LtQAAAAZ0Uk5TAP/lAqwBM1JmCgAAAsJJREFUeJztmutx3CAQgMF2/iWWtoJMKvC4giQlpNOUcCW4BP+3c5BxATIsrwWhp8UdybAzZ0AI+Fh2YbkzZ3UKvzbAhDSubdK4toni4v1k7SAviBJJ49omCRcfotpauAYJUW0lXCJd0yq4NITOD389XA1cyIBc0mutMi52e18hl1ApJFxRmRqhoNWu+PMJM7y/+WNeF3ErfEvNnU5bVUfFVVzBS5MRRuXuWf15fGYPJw8Eo7dEDmSW65vMcSVdznG52en018n25ae8mwvYApdzWjqEWrYsF2Dx7su1uOhebFqYpTNcdjULcTn7Jp5AnULEOXB7ND9Trsi9D+UKTddxqQTy+jmUi8gsFw6izN5w+d2lABeLHqziAtOAcKG4GR5r915vs1wqw8+goyZ92H7//WEu7fKL/riKi0m1+DaJOtnFtbjf18WVMbB5Lmxw+4pJUPp+u586t3Mwi1w2YCrI5fat1VwYKA3ypivKBaPMEpdzbOffR3DZIzfi8jLBFfo7z3A5yZ2XiQkfzUU8RQeFRAsf4rIxwDauUfzFPFBZroX9/mpcQWHZ85Hqk3ALkhTiurw0rv+TK1xlGtdKLnd+1Ma1qC970THtdCow4nBBDZYxBIHh7Z4J3lvT1a/oj3BhUAmuh1PgcgOaFmB7EJpEFXi45OmLVTkuowo7cf25ewFmyurxp8+2B/XUwLpTFkvqImKawSauNfsEcjkmnLzsQ3DKe9nbLwE4as+HZOYVWZRLNw1cjATNoEY2PNbaSNDL+x8nb5KzsltfZB07jqqxZgemHSi7Ml1FXAIcVwF9Ef3oQTplMpaTeS8FfaPNcOF3Cn7JJ9W2hyvdJzoJlMurwyxhwoWOeikuP6jKqPBZA9nFHnN5k/z6tJ5L369qPIfy9446uGbu243rH/n9MZHGlUrF/w9QpTSubdK4tknj2ibv0KQMcdk0F1sAAAAASUVORK5CYII="> *@
+            <img alt="brand-image" height="100" class="sidebar-logo-white"
+                 src="images/PhoenixLogo.png"
+            @* src="https://static.wixstatic.com/media/d264af_61f93dd523d04bfbbb8fb78e3e07607b~mv2.jpg/v1/fill/w_109,h_96,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/d264af_61f93dd523d04bfbbb8fb78e3e07607b~mv2.jpg" *@
+            />
+
+        </div>
+        <div class="user-info">
+            <StowellCoApp.Pages.Home></StowellCoApp.Pages.Home>
+            @* <img alt="image" height="48" src="images/p360admin.jpg">
+
+            <div class="name">John Doe</div>
+            <div class="role">Admin</div> *@
+        </div>
+        <NavMenu />
+    </aside>
+
+    <!-- MAIN AREA (topbar + content + right menu) -->
+    <div class="main-area">
+
+        <!-- Topbar -->
+        <header class="topbar">
+            <input type="text" placeholder="Search for anything..." />
+            <div class="top-icons">
+               
+                <button class="icon-btn" title="More Apps"
+                        @onclick="ToggleDropdown" aria-label="More Apps"
+                        @onclick:stopPropagation="true">
+                    <i class="bi bi-download" ></i>
+                   </button>
+                <div class="quick-shortcut @(IsOpen ? "show" : "")">
+                    <div class="quick-shortcut-header">
+                        <h4>Quick Shortcut</h4>
+                        <small>User Applications & Addons</small>
+                        <i class=""></i>
+                    </div>
+
+                    <div class="quick-shortcut-body">
+                        <ul class="quick-shortcut-list">
+                            <li>
+                                <a class="quick-shortcut-item">
+                                    <div class="quick-shortcut-icon">
+                                        <img src="https://react.proserv360.tech/assets/outlook-icon-ComIkiQ6.jpeg" style="width: 40px;
+    height: 40px;" />
+                                    </div>
+                                    <div class="quick-shortcut-label">Outlook</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="quick-shortcut-item">
+                                    <div class="quick-shortcut-icon">
+                                        <i class="bi bi-microsoft-teams" style="color:#4f80c0 !important"></i>
+                                    </div>
+                                    <div class="quick-shortcut-label">Teams</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="quick-shortcut-item">
+                                    <div class="quick-shortcut-icon">
+                                        <i class="fa fa-calendar text-primary" style="color:#4f80c0 !important"></i>
+                                    </div>
+                                    <div class="quick-shortcut-label">Calendar</div>
+                                </a>
+                            </li>
+
+                            <li>
+                                <a class="quick-shortcut-item">
+                                    <div class="quick-shortcut-icon">
+                                        <img alt="image" class="" width="50"
+                                             src="data:image/png;base64,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">
+
+                                    </div>
+                                    <div class="quick-shortcut-label">OneDrive</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="quick-shortcut-item">
+                                    <div class="quick-shortcut-icon">
+                                        <img alt="image" class="" width="45"
+                                             src="images/Word-BgPwIVfT.ico">
+                                    </div>
+                                    <div class="quick-shortcut-label">Word</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="quick-shortcut-item">
+                                    <div class="quick-shortcut-icon">
+                                        <img alt="image" class="" width="50"
+                                             src="images/Excel-CA07Fto9.ico">
+                                    </div>
+                                    <div class="quick-shortcut-label">Excel</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="quick-shortcut-item">
+                                    <div class="quick-shortcut-icon">
+                                        <i class="fa fa-user text-primary" style="color:#4f80c0 !important"></i>
+                                    </div>
+                                    <div class="quick-shortcut-label">Account</div>
+                                </a>
+                            </li>
+
+                            
+                        </ul>
+                    </div>
+                </div>
+                <button class="icon-btn">
+
+                    <img src="https://brandlogo.org/wp-content/uploads/2025/05/Microsoft-365-Copilot-Logo-2025.png" width="30" height="30" />
+                </button>
+                <button class="icon-btn" title="Document Management" aria-label="Password Management"><i class="bi bi-file-earmark-richtext"></i></button>
+
+              <button class="icon-btn" title="Password Management" @onclick="GoToPasswordPage" aria-label="Password Management" ><i class="fas fa-key"></i></button>
+                <button class="icon-btn" title="Support" onclick="window.location.href='mailto:support@proserv360.tech'"><i class="fas fa-handshake"></i></button>
+               
+                <a class="icon-btn"
+                        title="Logout"
+                        aria-label="Logout"
+                   href="https://phoenixdesigns.proserv360.tech/">
+                    <i class="fas fa-sign-out"></i>
+                </a>
+                <button class="icon-btn" @onclick="ToggleRightMenu" title="Toggle Right Menu">
+                    <i class="bi bi-layout-sidebar-inset-reverse"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Breadcrumbs -->
+       @*  <nav class="breadcrumbs">
+            <PageTitle>Home</PageTitle>
+            <span href="/" class="breadcrumb-link">Home  / Stowell Admin / Stowell Home</span>
+        </nav>
+ *@
+@*  <div class="page-header">
+    <!-- Main visible title -->
+    <h1 class="page-title">Home</h1>
+
+    <!-- Breadcrumb navigation -->
+    <nav class="breadcrumbs">
+        <span class="breadcrumb-link">Home</span>
+        <span class="breadcrumb-separator"> / </span>
+        <span class="breadcrumb-link">Admin</span>
+        <span class="breadcrumb-separator"> / </span>
+        <span class="breadcrumb-current">Dashboard</span>
+    </nav>
+</div> *@
+
+
+        <!-- CONTENT + RIGHT MENU -->
+        <div class="content-right-wrapper">
+
+            <!-- Main page content -->
+            <main class="content-wrapper">
+                @Body
+            </main>
+
+            <!-- Right slim menu -->
+            @if (RightMenuOpen)
+            {
+                <aside class="right-bar">
+
+                    <a href="https://app.contractorforeman.net/sign-in?return_url=www.contractorforeman.net" target="_blank">
+                        <img alt="image" class="rounded-circle" width="60"
+                             src="images/Contractor Foreman1.png"><div class="text-xs">Contractor Foreman</div>
+                    </a>
+                    <a href="img/cpub-BuzzBUILTBuzzBIDClient__1_-SAGE-CmsRdsh.rdp" download>
+                        <img alt="image" class="rounded-circle" width="60"
+                             src="images/BuzzBID2.ico"><div class="text-xs">BuzzBID</div>
+                    </a>
+
+                    <a href="https://auth.monday.com/auth/login_monday" target="_blank">
+                        <img alt="image" class="rounded-circle" width="50"
+                             src="images/mondayrcom.png"><div class="text-xs">Monday PM</div>
+                    </a>
+                    <a href="https://auth.monday.com/auth/login_monday" target="_blank">
+                        <img alt="image" class="rounded-circle" width="50"
+                             src="images/MondayCRM.png"><div class="text-xs">Monday CRM</div>
+                    </a>
+                    <a href="https://accounts.intuit.com/app/sign-in?app_group=QBO&asset_alias=Intuit.accounting.core.qbowebapp&app_environment=prod&intent=qbo" target="_blank">
+                        <img alt="image" class="rounded-circle" width="50"
+                             src="images/Quickbooks.png"><div class="text-xs">Quickbooks</div>
+                    </a>
+                    <a href="https://signin.adp.com/" target="_blank">
+                        <img alt="image" class="" width="50"
+                             src="images/ADP.png"><div class="text-xs">ADP</div>
+                    </a>
+                    <a href="https://chatgpt.com/" target="_blank">
+                        <img alt="image" class="" width="50"
+                             src="images/ChatGPT.png">
+                        <div class="text-xs">ChatGPT</div>
+                        
+                    </a>
+                 
+                </aside>
+            }
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <a href="#" class="text-secondary fw-700">About</a>
+            <a href="#" class="text-secondary fw-700">License</a>
+            <a href="#" class="text-secondary fw-700">Documentation</a>
+            <a href="https://wrapbootstrap.com/user/MyOrange" class="text-secondary" target="_blank">
+                <i class="fas fa-question-circle" aria-hidden="true"></i>
+            </a>
+        </footer>
+       
+    </div>
+</div>
+
+@code {
+    private bool RightMenuOpen { get; set; } = true;
+
+    private void ToggleRightMenu()
+    {
+        RightMenuOpen = !RightMenuOpen;
+    }
+
+    private bool IsOpen;
+
+    private void CloseDropdown()
+    {
+        IsOpen = false;
+    }
+    private void ToggleDropdown()
+    {
+        IsOpen = !IsOpen;
+    }
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            IsOpen = false;
+        }
+    }
+    private async Task GoToPasswordPage()
+    {
+        await JS.InvokeVoidAsync(
+            "openInNewTab",
+            "https://stowell.proserv360.tech/RDWeb/Pages/en-US/password.aspx");
+    }
+    private void Logout()
+    {
+        Navigation.NavigateTo("authentication/logout", forceLoad: true);
+    }
+}
+<style>
+    .page-header {
+        margin-bottom: 1rem;
+    }
+
+    .page-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0;
+        color: #222;
+        margin-left:18px;
+    }
+
+        .page-title:focus-visible{
+            outline:none;
+        }
+    .breadcrumbs {
+        margin-top: 0.25rem;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .breadcrumb-link {
+      /*   color: #0078d7;
+        text-decoration: none; */
+    }
+
+        .breadcrumb-link:hover {
+            /* text-decoration: underline; */
+        }
+
+    .breadcrumb-separator {
+        margin: 0 4px;
+    }
+
+    .breadcrumb-current {
+        /* color: #333; */
+        /* font-weight: 600; */
+    }
+
+    .btn-primary {
+        color: #fff;
+        background-color: var(--rz-series-1);
+        border-color: var(--rz-series-1);
+    }
+</style>
+<style>
+    /* Card container */
+    .quick-shortcut {
+        width: 320px;
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        font-family: "Segoe UI", sans-serif;
+        z-index: 99999;
+        /* margin-top: 284px; */
+        position: absolute;
+        right: 25px;
+        top: 45px;
+        display: none;
+    }
+
+        .quick-shortcut.show {
+            display: block;
+        }
+
+    /* Header */
+    .quick-shortcut-header {
+        background: #000;
+        padding: 18px 12px;
+        text-align: center;
+        color: #fff;
+    }
+
+        .quick-shortcut-header h4 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color:#fff;
+        }
+
+        .quick-shortcut-header small {
+            display: block;
+            margin-top: 4px;
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+    /* App grid */
+    .quick-shortcut-body {
+        padding: 20px 15px;
+    }
+
+    .quick-shortcut-list {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    /* App item */
+    .quick-shortcut-item {
+        text-align: center;
+        text-decoration: none;
+        color: #555;
+        transition: transform 0.15s ease, color 0.15s ease;
+    }
+
+        .quick-shortcut-item:hover {
+            transform: translateY(-3px);
+            color: #4f80c0;
+        }
+
+    /* Icon */
+    .quick-shortcut-icon {
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .quick-shortcut-icon i,
+        .quick-shortcut-icon img {
+            font-size: 40px;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+    /* Label */
+    .quick-shortcut-label {
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .rz-grid-table thead th{
+        background-color:#000;
+    }
+
+        .rz-grid-table thead th .rz-column-title{
+            color:#fff;
+        }
+
+   /*  .quick-shortcut a{
+        cursor:none;
+    } */
+    .right-bar .text-xs{
+        text-align:center;
+    }
+</style>

@@ -1,0 +1,334 @@
+﻿@page "/CashFlowReport/{ProjectId:int}"
+@inherits CasFlowReport
+@using Radzen
+@using Radzen.Blazor
+@using StowellCoApp.DTO
+@using StowellCoApp.Services
+<PageTitle>Cash Flow Report</PageTitle>
+<h3>Cash Flow Report</h3>
+<hr />
+<div class="form-group row">
+    <label class="col-sm-1 col-form-label">Status</label>
+    <div class="col-sm-3">
+        <RadzenDropDown Data="@statusModels"
+                        TextProperty="Status"
+                        ValueProperty="Id"
+                        @bind-Value="selectedStatusId"
+                        Change="OnStatusChanged"
+                        Placeholder="Select Status"
+                        Style="width:250px"  />
+
+    </div>
+    <label class="col-sm-2 col-form-label">Job Number</label>
+    <div class="col-sm-3">
+        <RadzenDropDown Data="@jobsModel"
+                        TextProperty="RecJobNumber"
+                        ValueProperty="RecNum"
+                        @bind-Value="selectedJobId"
+                       
+                        Placeholder="Select Job Number"
+                        Style="width:250px" />
+       
+    </div>
+</div>
+<div class="form-group row">
+    <div class="col-sm-3">
+        <RadzenStack Orientation="Radzen.Orientation.Horizontal"
+                     JustifyContent="JustifyContent.Center"
+                     AlignItems="AlignItems.Center"
+                     Gap="0.5rem" class="rz-p-12">
+
+            <RadzenLabel Text="Start Date"
+                         Component="DatePicker"
+                         class="form-label"
+                         Style="width:115px; margin-left:2px; color:#212529; font-weight:normal;" />
+
+            <RadzenDatePicker @bind-Value="StartDate"
+                              DateFormat="MM/dd/yyyy" Culture="@UsCulture" />
+
+
+        </RadzenStack>
+
+       
+    </div>
+    <div class="col-sm-3">
+        @* <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" AlignItems="AlignItems.Center" Gap="0.5rem" class="rz-p-12">
+
+            <RadzenLabel Text="End Date" Component="DatePickerMultiple" class="form-label" Style="width: 115px;
+    margin-left: 2px;
+    color: #212529;
+    font-weight: normal;" />
+                <RadzenDatePicker Multiple @bind-Value=@values DateFormat="dd/MM/yyyy" Name="DatePickerMultiple" />
+            
+        </RadzenStack> *@
+        <RadzenStack Orientation="Radzen.Orientation.Horizontal"
+                     JustifyContent="JustifyContent.Center"
+                     AlignItems="AlignItems.Center"
+                     Gap="0.5rem" class="rz-p-12">
+
+          
+
+            <RadzenLabel Text="End Date"
+                         Component="DatePicker"
+                         class="form-label"
+                         Style="width:115px; margin-left:2px; color:#212529; font-weight:normal;" />
+
+            <RadzenDatePicker @bind-Value="EndDate"
+                              DateFormat="MM/dd/yyyy" Culture="@UsCulture"/>
+
+        </RadzenStack>
+    </div>
+    <div class="col-sm-2">
+        <RadzenButton Click="GetReportData" Text="Get Data" Style="background-color:var(--rz-series-1);color:#fff" />
+    </div>
+</div>
+<hr />
+<!-- Search + page size -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+
+    <div style="display:flex; align-items:center;">
+        <RadzenIcon Icon="search"
+                    style="cursor:pointer;background-color:#000;
+                           padding:8px;border-radius:4px;color:white;
+                           height:36px;width:36px;
+                           border-bottom-right-radius:0;
+                           border-top-right-radius:0;" />
+        <RadzenTextBox @bind-Value="searchTerm"
+                       Style="width:300px;height:36px;font-size:14px;"
+                       @oninput="OnInputChanged" />
+    </div>
+
+    <div style="display:flex;align-items:center;gap:5px;">
+        <span>Show</span>
+        <RadzenDropDown @bind-Value="selectedPageSize"
+                        Data="pageSizes"
+                        Style="width:80px;"
+                        Change="OnPageSizeChangedInput" />
+        <span>entries</span>
+
+        <div style="display:flex;gap:5px;">
+            <RadzenButton Text="Copy to clipboard" Click="CopyAllToClipboard" Style="margin-right:5px;background-color:var(--rz-series-1);" />
+
+            <RadzenButton Text="Export CSV" Click="ExportCsvManual" Style="margin-right:5px;background-color:var(--rz-series-1);" />
+            <RadzenButton Text="Export PDF" Click="ExportPdf" Style="margin-right:5px;background-color:var(--rz-series-1);" />
+            <RadzenButton Text="Export Excel" Click="ExportExcel" Style="background-color:var(--rz-series-1);" />
+        </div>
+    </div>
+
+</div>
+<div class="form-group row">
+    <div class="col-sm-12">
+        <RadzenDataGrid @ref="grid"
+                        Data="@cashFlowRecords"
+                        TItem="CashFlowRecord"
+                        AllowPaging="true"
+                        PageSize="10"
+                        AllowSorting="true"
+                        AllowFiltering="true"
+                        ShowPagingSummary="true"
+                        Count="@(cashFlowRecords?.Count() ?? 0)">
+            <Columns>
+
+                <RadzenDataGridColumn Property="RecNum" Title="Rec Num" />
+                <RadzenDataGridColumn Property="JobNumber" Title="Job Number" />
+
+               @*  <RadzenDataGridColumn Property="CashCollected" Title="Cash Collected" FormatString="{0:C2}">
+                    <Template Context="data">@data.CashCollected</Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="CashPaid" Title="Cash Paid" FormatString="{0:C2}">
+                    <Template Context="data">@data.CashPaid</Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="NetCash" Title="Net Cash" FormatString="{0:C2}">
+                    <Template Context="data">@data.NetCash</Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="InvoiceJ2D" Title="Invoice J2D" FormatString="{0:C2}">
+                    <Template Context="data">@data.InvoiceJ2D</Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="A_REndBal_Today" Title="A/R End Balance Today" FormatString="{0:C2}">
+                    <Template Context="data">@data.A_REndBal_Today</Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="jobcoststodate" Title="Job Costs To Date" FormatString="{0:C2}">
+                    <Template Context="data">@data.jobcoststodate</Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="A_PEndBal_Today" Title="A/P End Balance Today" FormatString="{0:C2}">
+                    <Template Context="data">@data.A_PEndBal_Today</Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="CashPaidOut" Title="Cash Paid Out" FormatString="{0:C2}">
+                    <Template Context="data">@data.CashPaidOut</Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="NetCashInOut" Title="Net Cash In/Out" FormatString="{0:C2}">
+                    <Template Context="data">@data.NetCashInOut</Template>
+                </RadzenDataGridColumn> *@
+                <RadzenDataGridColumn Property="CashCollected" Title="Cash Collected" FormatString="{0:C2}" />
+                <RadzenDataGridColumn Property="CashPaid" Title="Cash Paid" FormatString="{0:C2}" />
+                <RadzenDataGridColumn Property="NetCash" Title="Net Cash" FormatString="{0:C2}" />
+                <RadzenDataGridColumn Property="InvoiceJ2D" Title="Invoice J2D" FormatString="{0:C2}" />
+                <RadzenDataGridColumn Property="A_REndBal_Today" Title="A/R End Balance Today" FormatString="{0:C2}" />
+                <RadzenDataGridColumn Property="jobcoststodate" Title="Job Costs To Date" FormatString="{0:C2}" />
+                <RadzenDataGridColumn Property="A_PEndBal_Today" Title="A/P End Balance Today" FormatString="{0:C2}" />
+                <RadzenDataGridColumn Property="CashPaidOut" Title="Cash Paid Out" FormatString="{0:C2}" />
+                <RadzenDataGridColumn Property="NetCashInOut" Title="Net Cash In/Out" FormatString="{0:C2}" />
+
+            </Columns>
+        </RadzenDataGrid>
+
+    </div>
+</div>
+
+<style>
+    /* --- PAGE TITLE --- */
+    .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+
+    /* --- PANEL / CONTAINER --- */
+    .panel {
+        background: #ffffff;
+        border-radius: 6px;
+        border: 1px solid #e5e5e5;
+        padding: 20px 25px;
+        margin-top: 10px;
+    }
+
+    .panel-container {
+        padding: 10px;
+    }
+
+    .panel-content {
+        padding: 10px 0;
+    }
+
+
+    /* --- LABELS --- */
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 6px;
+        display: block;
+        color: #444;
+    }
+
+
+    /* --- INPUTS / SELECTS / DATE PICKERS --- */
+    .form-control,
+    .rz-input,
+    select,
+    input[type="date"] {
+        height: 38px;
+        border-radius: 4px;
+        border: 1px solid #c7c7c7;
+        padding: 6px 10px;
+        font-size: 14px;
+    }
+
+        .form-control:focus,
+        .rz-input:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 4px rgba(0,123,255,0.3);
+        }
+
+
+    /* Spacing between rows */
+    .row.mb-12 {
+        margin-bottom: 20px;
+    }
+
+
+    /* --- GET DATA BUTTON --- */
+    #btnGetData {
+       /*  margin-top: 10px; */
+        width: 100%;
+        padding: 8px 10px;
+        font-weight: 600;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+        .btn-primary:hover {
+            background-color: #0069d9;
+        }
+
+
+    /* --- TABLE STYLING --- */
+    #jobCostJournalTable {
+        margin-top: 20px;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #jobCostJournalTable thead {
+            background: #0d47a1; /* Deep navy blue like screenshot */
+            color: white;
+        }
+
+            #jobCostJournalTable thead th {
+                padding: 12px 10px;
+                font-size: 14px;
+                white-space: nowrap;
+            }
+
+        #jobCostJournalTable tbody td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        #jobCostJournalTable tbody tr:hover {
+            background: #f2f6ff; /* light blue hover similar to screenshot */
+        }
+
+
+    /* --- MODAL STYLING (Bootstrap) --- */
+    .modal-content {
+        border-radius: 6px;
+    }
+
+    .modal-header {
+        background: #0d47a1;
+        color: white;
+        border-top-left-radius: 6px;
+        border-top-right-radius: 6px;
+    }
+
+    .modal-body p {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .modal-body span {
+        font-weight: 600;
+    }
+
+
+    /* --- RADZEN CUSTOM SPACING FIXES --- */
+    .rz-p-12 {
+        padding: 0 !important;
+    }
+
+    .RadzenDatePicker {
+        width: 180px;
+    }
+    .row{
+        margin-left:-5px;
+    }
+
+    .rz-grid-table thead th{
+        background-color: var(--rz-series-1);
+    }
+
+        .rz-grid-table thead th .rz-column-title, .rz-grid-filter-icon {
+        color:#fff;
+    }
+</style>

@@ -1,0 +1,410 @@
+﻿@page "/CashFlowForecast"
+@inherits CashFlowForecastBase
+@using StowellCoApp.Components.Layout
+@layout MainLayout
+@using Radzen
+@using Radzen.Blazor
+@inject IJSRuntime JS
+@using StowellCoApp.Models
+<PageTitle>Cash Flow Forecast</PageTitle>
+
+<div class="card-header d-flex justify-content-between align-items-center">
+    <h4 class="m-0">Cash Flow Budget</h4>
+
+  
+</div>
+<div class="dashboard-container">
+
+    <div class="gridcard">
+
+        <div class="row form-horizontal">
+        <div class="col-lg-12">
+            <div class="panel">
+                <div class="panel-container">
+                    <div class="panel-content">
+                     
+                      
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+
+                        <div style="display:flex; align-items:center;">
+                            <RadzenIcon Icon="search"
+                                        style="cursor:pointer;background-color:var(--rz-series-1);
+                           padding:8px;border-radius:4px;color:white;
+                           height:36px;width:36px;
+                           border-bottom-right-radius:0;
+                           border-top-right-radius:0;" />
+                            <RadzenTextBox @bind-Value="searchTermBudget"
+                                           Style="width:300px;height:36px;font-size:14px;"
+                                           @oninput="OnInputChangedBudget" />
+                        </div>
+
+                        <div style="display:flex;align-items:center;gap:5px;">
+                            <span>Show</span>
+                            <RadzenDropDown @bind-Value="selectedPageSizeBudget"
+                                            Data="pageSizes"
+                                            Style="width:80px;"
+                                            Change="OnPageSizeChangedBudget" />
+                            <span>entries</span>
+
+                            <div style="display:flex;gap:5px;">
+                                        <RadzenButton Text="Copy to clipboard" Click="CopyAllToClipboardBudget" Style="margin-right:5px;background-color:var(--rz-series-1);" />
+
+                                <RadzenButton Text="Export CSV" Click="ExportBudgetForecastCsv" Style="margin-right:5px;background-color:var(--rz-series-1);" />
+                                <RadzenButton Text="Export PDF" Click="ExportBudgetForecastPdf" Style="margin-right:5px;background-color:var(--rz-series-1);" />
+                                <RadzenButton Text="Export Excel" Click="ExportBudgetForecastExcel" Style="background-color:var(--rz-series-1);" />
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="row mb-6">
+                        <div class="col-md-12">
+                                    <RadzenDataGrid Data="@filteredBudgetForecast"
+                                                    TItem="CashFlowForecastRow"
+                                                    AllowPaging="true"
+                                                    PageSize="10"
+                                                    AllowSorting="true" @ref="BudgetForecastGrid">
+
+                                        <Columns>
+
+                                            <RadzenDataGridColumn TItem="CashFlowForecastRow"
+                                                                  Property="JobNumber"
+                                                                  Title="Job Number" />
+
+                                            <RadzenDataGridColumn TItem="CashFlowForecastRow"
+                                                                  Property="JobName"
+                                                                  Title="Job Name" />
+
+                                            <RadzenDataGridColumn TItem="CashFlowForecastRow"
+                                                                  Property="TotalAmount"
+                                                                  Title="Budget Amount">
+                                                <Template Context="row">
+                                                    @row.TotalAmount.ToString("C2")
+                                                </Template>
+                                            </RadzenDataGridColumn>
+
+                                            <RadzenDataGridColumn TItem="CashFlowForecastRow"
+                                                                  Property="CurrentAmount"
+                                                                  Title="Costs As Of">
+                                                <Template Context="row">
+                                                    @row.CurrentAmount.ToString("C2")
+                                                </Template>
+                                            </RadzenDataGridColumn>
+
+                                            <RadzenDataGridColumn TItem="CashFlowForecastRow"
+                                                                  Property="Remaining"
+                                                                  Title="Remaining">
+                                                <Template Context="row">
+                                                    @row.Remaining.ToString("C2")
+                                                </Template>
+                                            </RadzenDataGridColumn>
+
+                                            @foreach (var month in MonthColumnsBudget)
+                                            {
+                                                <RadzenDataGridColumn TItem="CashFlowForecastRow"
+                                                                      Title="@month">
+                                                    <Template Context="row">
+                                                        @(row.ForecastMonths.ContainsKey(month)
+                                                                                                            ? row.ForecastMonths[month].ToString("N2")
+                                                                                                            : "$0.00")
+                                                </Template>
+                                            </RadzenDataGridColumn>
+                                                                                        }
+
+                                        </Columns>
+
+                                    </RadzenDataGrid>
+                            </div>
+
+                            </div>
+                            </div>
+                            </div>
+                            </div>
+            </div>
+        </div>
+       
+
+
+       
+
+    </div>
+
+</div>
+@*   <div class="card-header">
+    <h4 class="m-0">Pending Projects</h4>
+</div> *@
+<div class="card-header d-flex justify-content-between align-items-center">
+    <h4 class="m-0">Cash Flow Contract</h4>
+
+   
+</div>
+<div class="dashboard-container">
+
+    <div class="gridcard">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <!-- Left: Search box with icon -->
+
+            <div style="display: flex; align-items: center; /* gap: 8px; */">
+                <RadzenIcon Icon="search"
+                            style="
+                    cursor: pointer;
+                    background-color: var(--rz-series-1);
+                    padding: 8px;
+                    border-radius: 4px;
+                    color: #fff;
+                    font-size: 18px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    height: 36px;
+                    width: 36px;
+border-bottom-right-radius:0;
+border-top-right-radius:0" />
+                <RadzenTextBox @bind-Value="searchTermBudget"
+                               Placeholder="Search..."
+                               Style="width: 300px; height: 36px; font-size: 14px;" @oninput="OnInputChangedContract" />
+            </div>
+            <div style="display:flex; align-items:center; gap:5px;">
+                <span>Show</span>
+                <RadzenDropDown @bind-Value="selectedPageSizeContract" Data="pageSizes" Style="width:80px;" Change="OnPageSizeChangedContract" />
+                <span>entries</span>
+            </div>
+
+            <div style="display:flex;gap:5px;">
+                <RadzenButton Text="Copy to clipboard" Click="CopyAllToClipboardContract" Style="margin-right:5px;background-color:var(--rz-series-1);" />
+
+                <RadzenButton Text="Export CSV" Click="ExportContractForecastCsv" Style="margin-right:5px;background-color:var(--rz-series-1);" />
+                <RadzenButton Text="Export PDF" Click="ExportContractForecastPdf" Style="margin-right:5px;background-color:var(--rz-series-1);" />
+                <RadzenButton Text="Export Excel" Click="ExportContractForecastExcel" Style="background-color:var(--rz-series-1);" />
+
+            </div>
+        </div>
+        <RadzenDataGrid Data="@filteredContractForecast"
+                        TItem="CashFlowForecastRow"
+                        AllowPaging="true"
+                        PageSize="10"
+                        AllowSorting="true" @ref="ContractForecastGrid">
+
+            <Columns>
+
+                <RadzenDataGridColumn TItem="CashFlowForecastRow"
+                                      Property="JobNumber"
+                                      Title="Job Number" />
+
+                <RadzenDataGridColumn TItem="CashFlowForecastRow"
+                                      Property="JobName"
+                                      Title="Job Name" />
+
+                <RadzenDataGridColumn TItem="CashFlowForecastRow"
+                                      Property="TotalAmount"
+                                      Title="Total Contract Amount">
+                    <Template Context="row">
+                        @row.TotalAmount.ToString("C2")
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="CashFlowForecastRow"
+                                      Property="CurrentAmount"
+                                      Title="Billed As Of">
+                    <Template Context="row">
+                        @row.CurrentAmount.ToString("C2")
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="CashFlowForecastRow"
+                                      Property="Remaining"
+                                      Title="Remaining">
+                    <Template Context="row">
+                        @row.Remaining.ToString("C2")
+                    </Template>
+                </RadzenDataGridColumn>
+
+                @foreach (var month in MonthColumnsContract)
+                {
+                    <RadzenDataGridColumn TItem="CashFlowForecastRow"
+                                          Title="@month">
+                        <Template Context="row">
+                            @(row.ForecastMonths.ContainsKey(month)
+                                                    ? row.ForecastMonths[month].ToString("N2")
+                                                    : "$0.00")
+                    </Template>
+                </RadzenDataGridColumn>
+                                }
+
+            </Columns>
+
+        </RadzenDataGrid>
+
+    </div>
+</div>
+
+<style>
+    .content-wrapper {
+        width: 90%;
+    }
+
+    .dashboard-container {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+        flex-wrap: nowrap;
+        margin-bottom: 10px;
+    }
+
+    .chartcard {
+        flex: 0 0 49%; /* two columns with a small gap */
+        background-color: white;
+        border-radius: 12px;
+        padding: 5px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-sizing: border-box;
+    }
+
+    .calendardashboard-container {
+        display: flex;
+        flex-direction: row; /* 🔥 keep items side-by-side */
+        align-items: stretch; /* make both same height */
+        gap: 10px;
+        height: calc(100vh - 250px); /* adjust as needed */
+        overflow: hidden;
+        margin-bottom: 10px;
+    }
+
+    /* Left image card */
+    .card {
+        flex: 0 0 30%; /* 30% width of row */
+        background-color: white;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+        .card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* keeps aspect ratio */
+            border-radius: 8px;
+        }
+
+    /* Right calendar */
+    .calendar-container {
+        flex: 1; /* take remaining width */
+        display: flex;
+        flex-direction: column;
+        background-color: white;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    /* Scheduler wrapper ensures proper sizing */
+    .scheduler-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        min-height: 0; /* prevents flex collapse */
+    }
+
+    /* Make RadzenScheduler fill available height */
+    .calendar-container ::deep .rz-scheduler {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+    }
+
+    /* Optional scroll inside scheduler */
+    .calendar-container ::deep .rz-scheduler-content {
+        flex: 1;
+        overflow: auto;
+    }
+
+    /* Custom List button */
+    .scheduler-custom-button {
+        position: absolute;
+        top: 9px;
+        /* Move it slightly after the Day button area */
+        right: auto;
+        left: 385px; /* adjust this until it aligns visually */
+        z-index: 2;
+        padding: 9px;
+        height: auto;
+        line-height: 1.25rem;
+        min-height: 2.25rem;
+        min-width: 2.25rem;
+        font-size: var(--rz-body-font-size);
+        font-weight: 600;
+    }
+
+    /* Give space for the List button */
+    .calendar-container ::deep .rz-scheduler-header {
+        padding-right: 60px;
+    }
+
+    .rz-button.rz-primary.rz-shade-default {
+        background-color: var(--rz-scheduler-view-selected-background-color);
+        color: var(--rz-on-primary);
+    }
+
+    .gridcard {
+        display: flex;
+        flex-direction: column;
+        flex: 1; /* take full height available */
+        background-color: white;
+        /* border-radius: 12px; */
+        padding: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+        /* Make the Radzen grid stretch inside the card */
+        .gridcard ::deep .rz-datagrid {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* ensures the grid fills parent */
+        }
+
+        /* Optional: Scroll only grid content (not header/footer) */
+        .gridcard ::deep .rz-datatable-tablewrapper {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+    .card-header {
+        padding: 10px 0;
+        border-bottom: 1px solid #ccc;
+        margin-bottom: 2px;
+        font-weight: normal;
+    }
+
+        .card-header h4 {
+            text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+            color: #676a6c !important;
+            font-weight: 500;
+        }
+
+    .rz-grid-table thead th {
+        background-color: var(--rz-series-1);
+    }
+
+        .rz-grid-table thead th .rz-column-title, .rz-grid-filter-icon {
+            color: #fff;
+        }
+
+    .doclibrary a {
+        margin-right: 10px;
+    }
+
+        .doclibrary a:hover {
+            text-decoration: none;
+        }
+</style>

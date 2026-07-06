@@ -1,0 +1,79 @@
+﻿@using System.Globalization
+@using Radzen
+@using Radzen.Blazor
+
+<RadzenChart>
+    <RadzenChartTooltipOptions Shared="@SharedTooltip" />
+
+    @if (CashCollectedDatasets != null)
+    {
+        foreach (var chartData in CashCollectedDatasets)
+        {
+            foreach (var dataset in chartData.Datasets)
+            {
+                var seriesData = GetDataItems(dataset, chartData.Labels);
+                <RadzenLineSeries Data="@seriesData" CategoryProperty="Date" ValueProperty="Revenue"
+                                  Title="@dataset.Label" Smooth="@Smooth">
+                    <RadzenMarkers Visible="@ShowMarkers" MarkerType="MarkerType.Circle" />
+                    <RadzenSeriesDataLabels Visible="@ShowDataLabels" />
+                </RadzenLineSeries>
+            }
+        }
+    }
+
+    <RadzenCategoryAxis Padding="20" />
+    <RadzenValueAxis Formatter="@FormatAsUSD">
+        <RadzenGridLines Visible="true" />
+        <RadzenAxisTitle Text="Revenue in USD" />
+    </RadzenValueAxis>
+</RadzenChart>
+
+@code {
+    [Parameter]
+    public IEnumerable<ChartData> CashCollectedDatasets { get; set; }
+
+
+    [Parameter] public bool Smooth { get; set; } = false;
+    [Parameter] public bool ShowMarkers { get; set; } = true;
+    [Parameter] public bool ShowDataLabels { get; set; } = false;
+    [Parameter] public bool SharedTooltip { get; set; } = true;
+
+    private IEnumerable<DataItem> GetDataItems(ChartDataset dataset, string[] labels)
+    {
+        var dataItems = new List<DataItem>();
+        for (int i = 0; i < labels.Length; i++)
+        {
+            dataItems.Add(new DataItem
+            {
+                Date = labels[i],
+                Revenue = (double)dataset.Data[i]
+            });
+        }
+        return dataItems;
+    }
+
+    private string FormatAsUSD(object value)
+    {
+        return ((double)value).ToString("C0", CultureInfo.CreateSpecificCulture("en-US"));
+    }
+
+    public class DataItem
+    {
+        public string Date { get; set; }
+        public double Revenue { get; set; }
+    }
+
+    public class ChartData
+    {
+        public string[] Labels { get; set; }
+        public List<ChartDataset> Datasets { get; set; }
+    }
+
+    public class ChartDataset
+    {
+        public string Label { get; set; }
+        public decimal[] Data { get; set; }
+        public string BackgroundColor { get; set; }
+        public string BorderColor { get; set; }
+    }
+}

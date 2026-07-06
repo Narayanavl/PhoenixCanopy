@@ -1,0 +1,145 @@
+﻿@page "/Accounting/POQueue"
+<PageTitle>Accounting POQueue</PageTitle>
+<style>
+    .wrapper-content .row {
+        margin: 10px 0px;
+    }
+
+    .mod-high-contrast:not(.mod-skin-dark) .btn-secondary {
+        color: #FFF !important;
+        text-shadow: none !important;
+    }
+
+    table th {
+        background-color: #000;
+        color: #fff;
+    }
+</style>
+<div class="wrapper wrapper-content">
+    <div class="row white-bg p-10 my-3">
+        <div class="col-lg-12">
+            <div class=" mb-3">
+                <div class="card-header py-2">
+                    <h3 class="m-0">Purchase Order Queue</h3>
+                </div>
+                <div class="card-body px-2">
+                    <div id="activeRecordsTable_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
+
+                        <table id="activeRecordsTable" class="table m-0 table-striped dataTable no-footer" role="grid"
+                               aria-describedby="activeRecordsTable_info">
+                            <thead>
+                                <tr role="row">
+                                    <th class="sorting_asc sorting" tabindex="0" aria-controls="activeRecordsTable"
+                                        rowspan="1" colspan="1" aria-label="RecNum: activate to sort column descending"
+                                        style="width: 250px;" aria-sort="ascending">
+                                        Master Job PO ID
+                                    </th>
+                                    <th class="sorting" tabindex="0" aria-controls="activeRecordsTable" rowspan="1"
+                                        colspan="1" aria-label="Job Number: activate to sort column ascending"
+                                        style="width: 294px;">
+                                        PO Status
+                                    </th>
+                                    <th class="sorting" tabindex="0" aria-controls="activeRecordsTable" rowspan="1"
+                                        colspan="1" aria-label="Address: activate to sort column ascending"
+                                        style="width: 279px;">Job Name</th>
+                                    <th class="sorting" tabindex="0" aria-controls="activeRecordsTable" rowspan="1"
+                                        colspan="1" aria-label="City: activate to sort column ascending"
+                                        style="width: 126px;">PM</th>
+                                    <th class="sorting" tabindex="0" aria-controls="activeRecordsTable" rowspan="1"
+                                        colspan="1" aria-label="City: activate to sort column ascending"
+                                        style="width: 126px;">PO Type</th>
+
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <tr role="row" class="">
+
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+
+
+                            </tbody>
+                        </table>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-5">
+                                <div class="dataTables_info" id="activeRecordsTable_info" role="status"
+                                     aria-live="polite"></div>
+                            </div>
+                            <div class="col-sm-12 col-md-7">
+                                <div class="dataTables_paginate paging_simple_numbers" id="activeRecordsTable_paginate">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class=" mb-3">
+                <div class="card-header py-2">
+                    <h3 class="m-0">Completed Purchase Order Queue</h3>
+                </div>
+                <div class="card-body px-2">
+                    <div id="activeRecordsTable_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
+
+                        <table id="activeRecordsTable" class="table m-0 table-striped dataTable no-footer" role="grid"
+                               aria-describedby="activeRecordsTable_info">
+                            <thead>
+                                <tr role="row">
+                                    <th class="sorting_asc sorting" tabindex="0" aria-controls="activeRecordsTable"
+                                        rowspan="1" colspan="1" aria-label="RecNum: activate to sort column descending"
+                                        style="width: 250px;" aria-sort="ascending">
+                                        Master Job PO ID
+                                    </th>
+                                    <th class="sorting" tabindex="0" aria-controls="activeRecordsTable" rowspan="1"
+                                        colspan="1" aria-label="Job Number: activate to sort column ascending"
+                                        style="width: 294px;">
+                                        PO Status
+                                    </th>
+                                    <th class="sorting" tabindex="0" aria-controls="activeRecordsTable" rowspan="1"
+                                        colspan="1" aria-label="Address: activate to sort column ascending"
+                                        style="width: 279px;">Job Name</th>
+                                    <th class="sorting" tabindex="0" aria-controls="activeRecordsTable" rowspan="1"
+                                        colspan="1" aria-label="City: activate to sort column ascending"
+                                        style="width: 126px;">PM</th>
+                                    <th class="sorting" tabindex="0" aria-controls="activeRecordsTable" rowspan="1"
+                                        colspan="1" aria-label="City: activate to sort column ascending"
+                                        style="width: 126px;">PO Type</th>
+
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <tr role="row" class="">
+
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+
+
+                            </tbody>
+                        </table>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-5">
+                                <div class="dataTables_info" id="activeRecordsTable_info" role="status"
+                                     aria-live="polite"></div>
+                            </div>
+                            <div class="col-sm-12 col-md-7">
+                                <div class="dataTables_paginate paging_simple_numbers" id="activeRecordsTable_paginate">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

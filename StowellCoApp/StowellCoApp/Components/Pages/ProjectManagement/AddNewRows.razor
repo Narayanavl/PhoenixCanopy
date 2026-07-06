@@ -1,0 +1,69 @@
+﻿@page "/AddNewRows"
+<h3>AddNewRows</h3>
+@using Radzen
+@using Radzen.Blazor
+<RadzenButton Text="Add Row" Click="@AddRow" Style="margin-bottom:10px" />
+
+<RadzenDataGrid Data="@rows" TItem="CostRow" RowUpdate="@OnUpdate" @ref="grid">
+    <Columns>
+
+        <!-- Cost Code Description Textbox -->
+        <RadzenDataGridColumn TItem="CostRow" Title="Cost Code Description">
+            <Template Context="data">
+                <RadzenTextBox @bind-Value="data.CostCodeDescription" Style="width: 100%;" />
+            </Template>
+        </RadzenDataGridColumn>
+
+        <!-- Total Budget Textbox -->
+        <RadzenDataGridColumn TItem="CostRow" Title="Total Budget">
+            <Template Context="data">
+                <RadzenTextBox @bind-Value="data.TotalBudget" Style="width: 100%;" />
+            </Template>
+        </RadzenDataGridColumn>
+
+        <!-- Delete button -->
+        <RadzenDataGridColumn TItem="CostRow" Title="Actions" Width="100px">
+            <Template Context="data">
+                <RadzenButton Icon="delete"
+                              ButtonStyle="ButtonStyle.Danger"
+                              Size="ButtonSize.Small"
+                              Click="@(() => DeleteRow(data))" />
+            </Template>
+        </RadzenDataGridColumn>
+
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    RadzenDataGrid<CostRow> grid;
+
+    List<CostRow> rows = new();
+
+    // Add new empty row
+    void AddRow()
+    {
+        rows.Add(new CostRow());
+        grid.Reload();        // <-- Forces grid to refresh
+
+    }
+
+    // Delete row
+    void DeleteRow(CostRow row)
+    {
+        rows.Remove(row);
+        grid.Reload();        // <-- Forces grid to refresh
+
+    }
+
+    // Optional: If you want to handle row updates
+    void OnUpdate(CostRow row)
+    {
+        // Save changes logic if needed
+    }
+
+    public class CostRow
+    {
+        public string CostCodeDescription { get; set; }
+        public string TotalBudget { get; set; }
+    }
+}

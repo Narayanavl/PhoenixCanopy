@@ -1,0 +1,342 @@
+﻿@* @page "/file-viewer"
+@using Microsoft.AspNetCore.WebUtilities @* Add this for QueryHelpers *@
+@* @inject NavigationManager NavManager *@
+@* @using Syncfusion.Blazor.SfPdfViewer
+@using Syncfusion.Blazor.DocumentEditor
+@using Syncfusion.Blazor.Spreadsheet *@
+@* @using System.IO *@
+
+@* <PageTitle>Viewing @FileName</PageTitle>
+ *@
+@* <div style="height: 100vh; width: 100%;">
+    @if (FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+    {
+        <SfPdfViewer2 DocumentPath="@FileUrl" Height="100%" Width="100%" />
+    }
+    else if (FileName.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
+    {
+        <SfDocumentEditorContainer @ref="Editor" Height="100%" Width="100%" />
+    }
+    else if (FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+    {
+        <SfSpreadsheet @ref="Spreadsheet" Height="100%" Width="100%" />
+    }
+    else if (FileName.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
+    {
+     
+        <!-- Style this to look like a document viewer -->
+        <div style="padding: 20px; background: white; height: 100%; overflow: auto;">
+            <pre style="white-space: pre-wrap; font-family: monospace;">@TextContent</pre>
+        </div>
+    }
+</div> *@
+
+@* @code {
+    [Parameter] public string FolderName { get; set; }
+    [Parameter] public string FilterPath { get; set; } // Base64 encoded from parent
+    [Parameter] public string FileName { get; set; }
+    [Inject]
+    public IConfiguration Config { get; set; }
+    private string FileUrl;
+    private string TextContent;
+    private SfDocumentEditorContainer Editor;
+    private SfSpreadsheet Spreadsheet;
+    protected string? apiUrl;
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     apiUrl = Config["APIBaseUrl"];
+    //     // 1. Decode the FilterPath sent from the main page
+    //     var decodedPath = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(FilterPath));
+
+    //     // 2. Build the API URL (Same one we used before)
+    //     FileUrl = $"{apiUrl}api/DocumentManagement/GetFile?filterPath={Uri.EscapeDataString(decodedPath)}&foldername={FolderName}&name={Uri.EscapeDataString(FileName)}";
+
+    //     // 3. Special handling for Text/Word/Excel
+    //     if (FileName.EndsWith(".txt"))
+    //     {
+    //         using var client = new HttpClient();
+    //         TextContent = await client.GetStringAsync(FileUrl);
+    //     }
+    // }
+   // private string FileName;
+  //  private string FilterPath;
+   // private string FolderName;
+
+    protected override void OnInitialized()
+    {
+        apiUrl = Config["APIBaseUrl"];
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+
+        // Parse the query strings safely
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("name", out var name))
+            FileName = name;
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("path", out var path))
+            FilterPath = path;
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("folder", out var folder))
+            FolderName = folder;
+
+        // Construct your API URL
+        FileUrl = $"{apiUrl}api/DocumentManagement/GetFile?filterPath={Uri.EscapeDataString(FilterPath)}&folder={Uri.EscapeDataString(FolderName)}&name={Uri.EscapeDataString(FileName)}";
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            using var client = new HttpClient();
+            var bytes = await client.GetByteArrayAsync(FileUrl);
+            var ms = new MemoryStream(bytes);
+
+            if (FileName.EndsWith(".docx") && Editor != null)
+                await Editor.DocumentEditor.OpenAsync(ms, ImportFormatType.Docx);
+
+            else if (FileName.EndsWith(".xlsx") && Spreadsheet != null)
+            {
+                
+            }
+            else if (FileName.EndsWith(".txt"))
+            {
+                // Read the stream as a plain string
+                using var reader = new StreamReader(ms);
+                TextContent = await reader.ReadToEndAsync();
+
+                // Refresh the UI to show the text
+                StateHasChanged();
+            }
+            // await Spreadsheet.Open(new Syncfusion.Blazor.Spreadsheet.OpenSettings { File = ms });
+        }
+    }
+} *@ 
+
+ @* @page "/file-viewer"
+@using Microsoft.AspNetCore.WebUtilities
+@using Syncfusion.Blazor.SfPdfViewer
+@using Syncfusion.Blazor.DocumentEditor
+@using Syncfusion.Blazor.Spreadsheet
+@inject NavigationManager NavManager
+@inject IConfiguration Config
+
+<PageTitle>File Viewer</PageTitle>
+
+<div style="height:100vh; width:100%;">
+
+    @if (!string.IsNullOrEmpty(FileName))
+    {
+        @if (IsPdf)
+        {
+            <SfPdfViewer2 DocumentPath="@FileUrl"
+                          Height="100%"
+                          Width="100%" />
+        }
+        else if (IsDocx)
+        {
+            <SfDocumentEditorContainer @ref="DocEditor"
+                                       Height="100%"
+                                       Width="100%" />
+        }
+        else if (IsXlsx)
+        {
+            <SfSpreadsheet @ref="Spreadsheet"
+                           Height="100%"
+                           Width="100%" />
+        }
+        else if (IsTxt)
+        {
+            <div style="padding:20px; height:100%; overflow:auto;">
+                <pre style="white-space:pre-wrap">@TextContent</pre>
+            </div>
+        }
+    }
+
+</div>
+
+@code {
+
+    private string FileName;
+    private string FolderName;
+    private string FilterPath;
+    private string FileUrl;
+    private string TextContent;
+
+    private SfDocumentEditorContainer DocEditor;
+    private SfSpreadsheet Spreadsheet;
+
+    private string apiUrl;
+
+    private bool IsPdf => FileName?.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) == true;
+    private bool IsDocx => FileName?.EndsWith(".docx", StringComparison.OrdinalIgnoreCase) == true;
+    private bool IsXlsx => FileName?.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase) == true;
+    private bool IsTxt => FileName?.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) == true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        apiUrl = Config["APIBaseUrl"];
+
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        if (query.TryGetValue("name", out var name))
+            FileName = name;
+
+        if (query.TryGetValue("folder", out var folder))
+            FolderName = folder;
+
+        if (query.TryGetValue("path", out var path))
+            FilterPath = path;
+
+        FileUrl =
+            $"{apiUrl}api/DocumentManagement/GetFile" +
+            $"?foldername={Uri.EscapeDataString(FolderName)}" +
+            $"&name={Uri.EscapeDataString(FileName)}" +
+            $"&filterPath={Uri.EscapeDataString(FilterPath)}";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        try
+        {
+            using var http = new HttpClient();
+            var bytes = await http.GetByteArrayAsync(FileUrl);
+
+            if (IsDocx && DocEditor != null)
+            {
+                using var ms = new MemoryStream(bytes);
+                await DocEditor.DocumentEditor.OpenAsync(ms, Syncfusion.Blazor.DocumentEditor.ImportFormatType.Docx);
+            }
+            else if (IsXlsx && Spreadsheet != null)
+            {
+                using var ms = new MemoryStream(bytes);
+               // await Spreadsheet.OpenAsync(ms);
+            }
+            else if (IsTxt)
+            {
+                TextContent = System.Text.Encoding.UTF8.GetString(bytes);
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Viewer error: {ex.Message}");
+        }
+    }
+} *@
+@page "/file-viewer"
+@using Microsoft.AspNetCore.WebUtilities
+
+@* @using Syncfusion.Blazor.Spreadsheet *@
+
+@inject NavigationManager NavManager
+@inject IConfiguration Config
+
+<PageTitle>File Viewer</PageTitle>
+
+<div style="height:100vh; width:100%;">
+
+    @if (!string.IsNullOrEmpty(FileName))
+    {
+        @if (IsDocx)
+        {
+            @* <Syncfusion.Blazor.DocumentEditor.SfDocumentEditorContainer @ref="DocEditor"
+                                       Height="100%"
+                                       Width="100%" /> *@
+        }
+        else if (IsXlsx)
+        {
+            @* <SfSpreadsheet @ref="Spreadsheet"
+                           Height="100%"
+                           Width="100%" /> *@
+        }
+        else if (IsTxt)
+        {
+            <div style="padding:20px; height:100%; overflow:auto;">
+                <pre style="white-space:pre-wrap">@TextContent</pre>
+            </div>
+        }
+        else
+        {
+            <p>Unsupported file type</p>
+        }
+    }
+
+</div>
+
+@code {
+
+    private string FileName;
+    private string FolderName;
+    private string FilterPath;
+    private string FileUrl;
+    private string TextContent;
+
+   // private Syncfusion.Blazor.DocumentEditor.SfDocumentEditorContainer DocEditor;
+    //private SfSpreadsheet Spreadsheet;
+
+    private string apiUrl;
+
+    private bool IsDocx => FileName?.EndsWith(".docx", StringComparison.OrdinalIgnoreCase) == true;
+    private bool IsXlsx => FileName?.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase) == true;
+    private bool IsTxt => FileName?.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) == true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        apiUrl = Config["APIBaseUrl"];
+
+        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        if (query.TryGetValue("name", out var name))
+            FileName = name;
+
+        if (query.TryGetValue("folder", out var folder))
+            FolderName = folder;
+
+        if (query.TryGetValue("path", out var path))
+            FilterPath = path;
+
+        FileUrl =
+            $"{apiUrl}api/DocumentManagement/GetFile" +
+            $"?foldername={Uri.EscapeDataString(FolderName)}" +
+            $"&name={Uri.EscapeDataString(FileName)}" +
+            $"&filterPath={Uri.EscapeDataString(FilterPath)}";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        try
+        {
+            using var http = new HttpClient();
+            var bytes = await http.GetByteArrayAsync(FileUrl);
+
+            // if (IsDocx && DocEditor != null)
+            // {
+            //     using var ms = new MemoryStream(bytes);
+            //     await DocEditor.DocumentEditor.OpenAsync(
+            //         ms,
+            //         Syncfusion.Blazor.DocumentEditor.ImportFormatType.Docx
+            //     );
+            // }
+            // else if (IsXlsx && Spreadsheet != null)
+            // {
+            //     using var ms = new MemoryStream(bytes);
+            //     await Spreadsheet.OpenAsync(ms);
+            // }
+            //else 
+            if (IsTxt)
+            {
+                TextContent = System.Text.Encoding.UTF8.GetString(bytes);
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"File viewer error: {ex.Message}");
+        }
+    }
+}

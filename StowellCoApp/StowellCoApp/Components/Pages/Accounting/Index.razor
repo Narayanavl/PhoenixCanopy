@@ -1,0 +1,137 @@
+﻿@using Radzen
+@using Radzen.Blazor
+@using StowellCoApp.DTO
+@using StowellCoApp.Services
+@inherits IndexBase
+@page "/Accounting"
+<PageTitle>Account Queue</PageTitle>
+<h3>Active Projects</h3>
+<hr />
+@if (isLoading)
+{
+    <div class="spinner">Loading...</div>
+}
+else
+{
+    
+    <div class="dashboard-container">
+        <div class="gridcard">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+
+                <div style="display: flex; align-items: center;">
+                    <RadzenIcon Icon="search"
+                                style="
+                                        cursor: pointer;
+                                        background-color: #000;
+                                        padding: 8px;
+                                        border-radius: 4px;
+                                        color: #fff;
+                                        font-size: 18px;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        height: 36px;
+                                        width: 36px;
+                                        border-bottom-right-radius:0;
+                                        border-top-right-radius:0
+                                    " />
+                    <RadzenTextBox @bind-Value="searchTerm"
+                                   Placeholder="Search accounting..."
+                                   Style="width: 300px; height: 36px; font-size: 14px;"
+                                   @oninput="OnInputChanged" />
+                </div>
+
+                <div style="display:flex; align-items:center; gap:5px;">
+                    <span>Show</span>
+                    <RadzenDropDown @bind-Value="selectedPageSize"
+                                    Data="pageSizes"
+                                    Style="width:80px;"
+                                    Change="OnPageSizeChangedInput" />
+                    <span>entries</span>
+                </div>
+
+            </div>
+
+            <RadzenDataGrid @ref="grid"
+                            Data="@filteredaccounting"
+                            TItem="AccountingItem"
+                            AllowPaging="true"
+                            PageSize="@pageSize"
+                            AllowSorting="true"
+                            AllowFiltering="true"
+                            ShowPagingSummary="true"
+                            Count="@(filteredaccounting != null ? filteredaccounting.Count() : 0)">
+                <Columns>
+
+                    <RadzenDataGridColumn TItem="AccountingItem" Title="Job ID">
+                        <Template Context="bid">
+                            @{
+                                string actionName = bid.StatusID switch
+                                {
+                                    "99" => "AddForm",
+                                    "1" => "ApproveNewBudget",
+                                    "2" or "3" => "ApproveModifyBudget",
+                                    _ => "AddForm"
+                                };
+                            }
+                            <a href="@($"/Accounting/{actionName}/{bid.JobID}")">
+                                @bid.JobID
+                            </a>
+                        </Template>
+                    </RadzenDataGridColumn>
+
+                    <RadzenDataGridColumn TItem="AccountingItem" Property="JobName" Title="Job Name" />
+                    <RadzenDataGridColumn TItem="AccountingItem" Property="Address" Title="Address" />
+                    <RadzenDataGridColumn TItem="AccountingItem" Property="Submitter" Title="Submitter" />
+                    <RadzenDataGridColumn TItem="AccountingItem" Property="JobType" Title="Type" />
+
+                </Columns>
+            </RadzenDataGrid>
+
+        </div>
+    </div>
+}
+ <!-- End of else -->
+
+<style>
+    /* Put SUMMARY on its own line */
+    .rz-pager-summary {
+        display: block;
+        width: 100%;
+        margin-bottom: 6px;
+    }
+
+    /* Make the TWO pager sections share one row */
+    .rz-pager .rz-pager-pages {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+    }
+
+        /* Prevent Radzen from forcing internal wrapping */
+        .rz-pager .rz-paginator,
+        .rz-pager .rz-pager-pages > div {
+            white-space: nowrap;
+            flex-wrap: nowrap !important;
+        }
+
+    .rz-grid-table thead th {
+        background-color: var(--rz-series-1);
+    }
+
+        .rz-grid-table thead th .rz-column-title,
+        .rz-grid-filter-icon {
+            color: #fff;
+        }
+
+    .spinner {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 20px;
+        font-weight: bold;
+        color: var(--rz-series-1);
+    }
+</style>

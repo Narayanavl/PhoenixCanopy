@@ -1,0 +1,54 @@
+﻿@page "/pdf-viewer"
+@inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.WebUtilities
+@using Syncfusion.Blazor.SfPdfViewer
+@using Syncfusion.Blazor.Spinner
+<div class="control-section">
+    @* <SfSpinner Size="40" Type="SpinnerType.Bootstrap5" Visible="isSpinnerVisible"></SfSpinner> *@
+    <div class="pdf-viewer-shell @(pdfReady ? "visible" : "")">
+        <SfPdfViewer2 Height="640px"
+                      Width="100%"
+                      DocumentPath="@DocumentPath">
+            <PdfViewerEvents DocumentLoaded="OnPdfLoaded" />
+        </SfPdfViewer2>
+    </div>
+</div>
+@code {
+    private string DocumentPath { get; set; } = string.Empty;
+    private bool pdfReady = false;
+    SfPdfViewer2 viewer2;
+    private bool isSpinnerVisible = true;
+    [Parameter] public string filePath { get; set; }
+    protected override void OnInitialized()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+
+        if (QueryHelpers.ParseQuery(uri.Query)
+            .TryGetValue("filePath", out var filePath))
+        {
+            DocumentPath = Uri.UnescapeDataString(filePath);
+        }
+    }
+    private void OnPdfLoaded()
+    {
+        isSpinnerVisible = false;
+        pdfReady = true;
+    }
+}
+@* @code {
+    private string DocumentPath { get; set; } = string.Empty;
+    private bool pdfReady = false;
+    SfPdfViewer2 viewer2;
+    private bool isSpinnerVisible = true;
+    protected override void OnInitialized()
+    {
+        //string fileDataPath = NavigationManager.BaseUri + SampleService?.WebAssetsPath;
+        //Sets the PDF document path for initial loading.
+        DocumentPath = "https://cdn.syncfusion.com/content/pdf/pdf-succinctly.pdf";
+    }
+    private void OnPdfLoaded()
+    {
+        isSpinnerVisible = false;
+        pdfReady = true;
+    }
+} *@

@@ -1,0 +1,390 @@
+﻿@inherits ProjectDetailsTabBase
+@using Radzen
+@using Radzen.Blazor
+@using StowellCoApp.DTO
+@using StowellCoApp.Components.Pages.ProjectManagement
+@using StowellCoApp.Services
+@* @inject ProjectOverviewService projectOverView *@
+@inject NavigationManager Nav
+@if (_currencycostModel == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <form method="get">
+        <div class="form-group  row">
+            <label class="col-sm-1 col-form-label">Job Id</label>
+            <div class="col-sm-3"><input class="form-control" type="text" value="@_bidModel.JobID" readonly></div><label class="col-sm-1 col-form-label">Job Name</label>
+            <div class="col-sm-3"><input class="form-control" type="text" value="@_bidModel.JobName" readonly></div>
+            <div class="col-sm-2">
+                <a style="color:#FE866D !important"
+                   href="@projectfolderlibraryUrl"
+                   target="_blank">
+                    <i class="fas fa-folder"></i> <span>Project Folder Library</span>
+                </a>
+
+            </div>
+            <div class="col-sm-1">
+                <a href="/Estimation/EditBidForm/@_currencycostModel.SelectedJobId" style="color:#FFF;"><button class="btn btn-primary btn-sm ms-2" type="button">Update</button></a>
+            </div>
+        </div>
+        <h2>Project Resources</h2>
+        <div class="form-group row">
+            <div class="col-sm-6">
+
+                @* <table class="table table-bordered mt-2 " id="employeeTable">
+                    <thead>
+                        <tr>
+                            <th class="text-center">Action</th>
+                            <th>Role</th>
+                            <th>Employee</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table> *@
+                @* @if (filteredemployees == null || !filteredemployees.Any())
+                {
+                    <p>Loading...</p>
+                }
+
+                else
+                { *@
+                    <RadzenDataGrid @ref="employeeGrid" Data="@filteredemployees" TItem="EmployeeDetails" ColumnWidth="200px" AllowPaging="false" PageSize="@pageSize" AllowSorting="true" AllowFiltering="true"
+                    ShowPagingSummary="true" Count="@(filteredemployees != null ? filteredemployees.Count() : 0)">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="EmployeeDetails" Title="Actions" Width="120px" Filterable="false" Sortable="false">
+                            <Template Context="data">
+                                <RadzenButton Icon="delete"
+                                              ButtonStyle="ButtonStyle.Danger"
+                                              Size="ButtonSize.Small" >
+                                </RadzenButton>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <!-- Hyperlink column -->
+                        <RadzenDataGridColumn TItem="EmployeeDetails" Property="Role" Title="Role" />
+                        <RadzenDataGridColumn TItem="EmployeeDetails" Property="Employee" Title="Employee" />
+                        <!-- Delete Button Column -->
+                        
+                    </Columns>
+                </RadzenDataGrid>
+                @* } *@
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-sm-6">
+                <h2>Project Location</h2>
+                <div class="hr-line-dashed"></div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label">Jobsite</label>
+                    <div class="col-sm-6"><input class="form-control" placeholder="Enter jobsite" id="txtJobSite" type="text" value="@_bidModel.ProjectLocation?.Jobsite" readonly></div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">Address</label>
+                    <div class="col-sm-6"><input class="form-control" placeholder="Enter address" type="text" id="txtJobSiteAddress" value="@_bidModel.ProjectLocation?.Address" readonly></div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">Address 2</label>
+                    <div class="col-sm-6"><input class="form-control" placeholder="Enter address 2" type="text" id="txtJobSiteAddress2" value="@_bidModel.ProjectLocation?.Address2" readonly></div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">City</label>
+                    <div class="col-sm-6"><input class="form-control" placeholder="Enter city" type="text" id="txtJobSiteCity" value="@_bidModel.ProjectLocation?.City" readonly></div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">State</label>
+                    <div class="col-sm-6"><input class="form-control" placeholder="Enter state" type="text" id="txtJobSiteState" value="@_bidModel.ProjectLocation?.State" readonly></div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">Sales Tax District</label>
+                    <div class="col-sm-6">
+                        <input class="form-control" placeholder="Enter sales tax district"
+                               type="text" id="txtJobSiteSalesTaxDistrict" value="@_bidModel.ProjectLocation?.SalesTaxDistrict" readonly>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <h2>General Contractor Information</h2>
+                <div class="hr-line-dashed"></div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">Client</label>
+                    <div class="col-sm-6">
+                       @*  <select id="ddlClient" class="form-control" disabled @bind="selectedclient">
+                        </select> *@
+                        <RadzenDropDown TValue="int?"
+                                        Data="@_contractClientdroplist"
+                                        TextProperty="Name"
+                                        ValueProperty="Id"
+                                        Placeholder="Select Client"
+                                        Style="width:100%"
+                                        @bind-Value="@selectedClientId"
+                                         />
+                        <input type="hidden" id="hdnddlClient" />
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">Address</label>
+                    <div class="col-sm-6"><input class="form-control" placeholder="Enter address" type="text" id="txtClientAddress" value="@_bidModel.ContractorInfo?.Address" readonly></div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">Address 2</label>
+                    <div class="col-sm-6"><input class="form-control" placeholder="Enter address 2" type="text" id="txtClientAddress2" value="@_bidModel.ContractorInfo?.Address2" readonly></div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">City</label>
+                    <div class="col-sm-6"><input class="form-control" placeholder="Enter city" type="text" id="txtClientCity" value="@_bidModel.ContractorInfo?.City" readonly></div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">State</label>
+                    <div class="col-sm-6"><input class="form-control" placeholder="Enter state" type="text" id="txtClientState" value="@_bidModel.ContractorInfo?.State" readonly></div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">Sales Tax District</label>
+                    <div class="col-sm-6">
+                        <input class="form-control" placeholder="Enter sales tax district"
+                               type="text" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <h2>Project Information</h2>
+        <div class=" row">
+
+            <div class="hr-line-dashed"></div>
+            <div class="col-sm-6">
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">
+                        Insurance
+                        Type
+                    </label>
+                    <div class="col-sm-6">
+                        <select class="form-control" id="ddlInsuranceType" disabled @bind="selectedInsuranceType">
+                            <option value="0">Select insurance type</option>
+                            <option value="1">OCIP</option>
+                            <option value="2">CCIP</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">Bonded</label>
+                    <div class="col-sm-6">
+                        <select class="form-control" id="ddlBonded" disabled @bind="selectedBonded">
+                            <option value="0">Select</option>
+                            <option value="1">Yes</option>
+                            <option value="2">No</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">Tax Exempt</label>
+                    <div class="col-sm-6">
+                        <select class="form-control" id="ddlTaxExempt" disabled @bind="selectedTaxExempt">
+                            <option value="0">Select</option>
+                            <option value="1">Yes</option>
+                            <option value="2">No</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">
+                        Invoice
+                        Submittal
+                    </label>
+                    <div class="col-sm-6">
+                        <select class="form-control" id="ddlInvoiceSubmittal" disabled @bind="selectedInvoiceSubmittal">
+                            <option value="0">Select</option>
+                            <option value="1">Email</option>
+                            <option value="2">Portal</option>
+                            <option value="3">Mail</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">
+                        Certified
+                        Payroll
+                    </label>
+                    <div class="col-sm-6">
+                        <select class="form-control" id="ddlCertifiedPayroll" disabled @bind="selectedCertifiedPayroll">
+                            <option value="0">Select</option>
+                            <option value="1">Yes</option>
+                            <option value="2">No</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">
+                        Net Terms
+                        Date
+                    </label>
+                    <div class="col-sm-6">
+                        @* <input class="form-control" type="date" id="txtNetTermsDate" data-date-format="MM/DD/YYYY" readonly> *@
+                        <RadzenDatePicker TValue="DateTime?"
+                                          @bind-Value="txtNetTermsDate"
+                                          DateFormat="MM/dd/yyyy"
+                                          Placeholder="Select date"
+                                          Style="width:100%" Culture="@UsCulture" />
+                        </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">Retainage %</label>
+                    <div class="col-sm-6">
+                        <input class="form-control"
+                               placeholder="Enter retainage percentage" type="number" id="txtRetainage" readonly @bind-value="txtRetainage">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+}
+@* @code {
+    [Parameter] public int ProjectId { get; set; }
+
+    public CurrentCostSummaryViewModel Model { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+         Model = await projectOverView.GetCurrentCostSummaryViewModel(Convert.ToString(ProjectId));
+
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) // important to avoid infinite loops
+        {
+            // Model = await projectOverView.GetCurrentCostSummaryViewModel(Convert.ToString(ProjectId));
+        }
+    }
+} *@
+<style>
+    /* ------------------------------
+               GENERAL FORM LAYOUT
+            --------------------------------*/
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+        .form-group.row {
+            align-items: center;
+        }
+
+    /* Make labels cleaner */
+    .col-form-label {
+        font-weight: 600;
+        color: #777;
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+    /* Read-only field styling */
+    .form-control[readonly] {
+        background-color: #f7f7f7;
+        opacity: 1;
+        border-color: #dcdcdc;
+        cursor: not-allowed;
+    }
+
+    /* Optional hover effect for editable form controls */
+    .form-control:not([readonly]):hover {
+        border-color: #999;
+    }
+
+    /* Add spacing between inline form groups */
+    .form-group.row > div {
+        margin-bottom: 8px;
+    }
+
+    /* ------------------------------
+               SECTION HEADERS & DIVIDERS
+            --------------------------------*/
+
+    h2 {
+        font-weight: 700;
+        color: #2c3e50;
+        margin-top: 20px;
+    }
+
+    .hr-line-dashed {
+        border-top: 1px dashed #c7c7c7;
+        margin: 15px 0 25px 0;
+    }
+
+    /* ------------------------------
+               TABLE STYLING
+            --------------------------------*/
+
+    .table {
+        background-color: #fff;
+        margin-top: 10px;
+    }
+
+        .table th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .table td,
+        .table th {
+            border-color: #dcdcdc;
+            vertical-align: middle;
+            padding: 8px 12px;
+        }
+
+    .table-bordered tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    /* ------------------------------
+               BUTTONS (optional)
+            --------------------------------*/
+
+    .btn-primary {
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 4px;
+    }
+
+    .hide {
+        display: none !important;
+    }
+
+    /* ------------------------------
+               RESPONSIVE FIXES
+            --------------------------------*/
+
+    @@media (max-width: 768px) {
+        .col-form-label {
+            text-align: left !important;
+            padding-top: 0;
+            padding-bottom: 2px;
+        }
+
+        .form-group.row > div {
+            margin-bottom: 12px;
+        }
+    }
+
+    table th {
+        background-color: var(--rz-series-1);
+        color: #fff;
+    }
+
+    .rz-grid-table thead th {
+        background-color: var(--rz-series-1);
+    }
+
+        .rz-grid-table thead th .rz-column-title, .rz-grid-filter-icon {
+            color: #fff;
+        }
+
+    .btn-primary {
+        background-color: #000 !important;
+        border-color: #000 !important
+    }
+</style>

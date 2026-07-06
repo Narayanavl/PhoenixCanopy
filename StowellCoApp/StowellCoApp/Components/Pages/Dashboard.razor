@@ -1,0 +1,1016 @@
+﻿@page "/"
+@using StowellCoApp.Components.Layout
+@layout MainLayout
+@using Radzen
+@using Radzen.Blazor
+@inject IJSRuntime JS
+@using StowellCoApp.DTO
+@using StowellCoApp.Services
+@inject CalendarApiClient ApiClient
+@using static StowellCoApp.Components.Pages.CalendarPage;
+<PageTitle>Phoenix Dashboard</PageTitle>
+@* <PageHeader Title="Home"
+            Breadcrumbs="@(new List<string> { "Home", "Stowell Admin", "Stowell Home" })" /> *@
+
+
+@* <div class="calendardashboard-container">
+    <div class="card">
+      
+        <a href="https://go.skimresources.com/?id=98953X1671433&xs=1&url=https%3A%2F%2Fbe.synxis.com%2F%3Fadult%3D1%26arrive%3D2025-12-13%26chain%3D10237%26child%3D0%26config%3DORLRZ%26currency%3DUSD%26depart%3D2025-12-14%26group%3DGRP_StowellChristmas%26hotel%3D69868%26level%3Dhotel%26locale%3Den-US%26productcurrency%3DUSD%26rooms%3D1%26theme%3DORLRZ&sref=https%3A%2F%2Fpaperlesspost.com%2Fgo%2FkkkMaLdFNaW3ZMindW43g" target="_blank"> <img src="images/christmas.png" /></a>
+    </div>
+
+    <div class="calendar-container">
+        <div class="scheduler-wrapper">
+          
+            <RadzenScheduler TItem="MyEventViewModel"
+                             Data="@calendarEvents"
+                             StartProperty="Start"
+                             EndProperty="End"
+                             TextProperty="Subject">
+                <RadzenMonthView />
+                <RadzenWeekView />
+                <RadzenDayView />
+            </RadzenScheduler>
+
+            <RadzenButton Text="List"
+                          Icon="List"
+                          Click="@ShowList"
+                          class="scheduler-custom-button" />
+        </div>
+    </div>
+</div> *@
+<div class="calendardashboard-container">
+    @*   <div class="card">
+        <a href="https://go.skimresources.com/?id=98953X1671433&xs=1&url=https%3A%2F%2Fbe.synxis.com%2F%3Fadult%3D1%26arrive%3D2025-12-13%26chain%3D10237%26child%3D0%26config%3DORLRZ%26currency%3DUSD%26depart%3D2025-12-14%26group%3DGRP_StowellChristmas%26hotel%3D69868%26level%3Dhotel%26locale%3Den-US%26productcurrency%3DUSD%26rooms%3D1%26theme%3DORLRZ&sref=https%3A%2F%2Fpaperlesspost.com%2Fgo%2FkkkMaLdFNaW3ZMindW43g" target="_blank">
+            <img src="images/christmas.png" />
+        </a>
+    </div> *@
+
+    @*   <div class="calendar-container">
+        <div class="scheduler-wrapper">
+
+            <RadzenButton Text="@ToggleButtonText"
+                          Click="@ToggleView"
+                          Icon="List"
+                          class="scheduler-custom-button" />
+           
+            @if (showCalendar)
+            {
+                <RadzenScheduler TItem="MyEventViewModel"
+                                 Data="@calendarEvents"
+                                 StartProperty="Start"
+                                 EndProperty="End"
+                                 TextProperty="Subject"
+                                 Style="height: 400px;" @ref="scheduler">
+                    <RadzenMonthView />
+                    <RadzenWeekView />
+                    <RadzenDayView />
+                </RadzenScheduler>
+            }
+            else
+            {
+                
+                    @if (GroupedEvents != null && GroupedEvents.Count > 0)
+                    {
+                    <div class="event-list-container">
+                        @foreach (var dayGroup in GroupedEvents)
+                        {
+
+                            <div class="day-group">
+                                <div class="day-header-left">
+                                    <strong>@dayGroup.Key.ToString("dddd")</strong>
+                                    <div class="event-items">
+                                        @foreach (var ev in dayGroup.Value)
+                                        {
+                                            <div class="event-item">
+                                                <span class="event-time">@ev.Start.ToString("hh:mmtt").ToLower()</span>
+                                                <span class="event-dot"></span>
+                                                <span class="event-text">@ev.Subject</span>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="day-header-right">
+                                    @dayGroup.Key.ToString("MMMM dd, yyyy")
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    }
+                    else
+                    {
+                        <div style="width: 100%;
+            height: 100%;
+            display: table;">
+                            <p style="display:table-cell;vertical-align:middle;text-align:center">No events to display</p>
+                        </div>
+                        
+                    }
+               
+            }
+        </div>
+    </div> *@
+    <div class="calendar-container">
+        <div class="scheduler-wrapper">
+
+            <RadzenButton Text="@ToggleButtonText"
+                          Click="@ToggleView"
+                          Icon="List"
+                          class="scheduler-custom-button" />
+
+            <div class="calendar-wrapper @(showCalendar ? "calendar-mode" : "list-mode")">
+                <RadzenScheduler TItem="MyEventViewModel"
+                                 Data="@calendarEvents"
+                                 StartProperty="Start"
+                                 EndProperty="End"
+                                 TextProperty="Subject"
+                                 Style="height: 400px;"
+                                 @ref="scheduler">
+
+                    <RadzenMonthView/>
+                    <RadzenWeekView />
+                    <RadzenDayView />
+                </RadzenScheduler>
+            </div>
+
+            @if (!showCalendar)
+            {
+                if (GroupedEvents != null && GroupedEvents.Count > 0)
+                {
+                    <div class="event-list-container">
+                        @foreach (var dayGroup in GroupedEvents)
+                        {
+                            <div class="day-group">
+                                <div class="day-header-left">
+                                    <strong>@dayGroup.Key.ToString("dddd")</strong>
+                                    <div class="event-items">
+                                        @foreach (var ev in dayGroup.Value)
+                                        {
+                                            <div class="event-item">
+                                                <span class="event-time">@ev.Start.ToString("hh:mmtt").ToLower()</span>
+                                                <span class="event-dot"></span>
+                                                <span class="event-text">@ev.Subject</span>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="day-header-right">
+                                    @dayGroup.Key.ToString("MMMM dd, yyyy")
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="no-events">
+                        <p>No events to display</p>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+</div>
+
+
+<!-- ===== FIRST ROW ===== -->
+<div class="grid-dashboard-container first-row">
+
+    <!-- Left Panel -->
+    <div class="left-panel">
+        <DashboardCurrentJobs></DashboardCurrentJobs>
+    </div>
+
+    <!-- Right Panel with two vertical charts -->
+    <div class="right-panel">
+        <div class="chart-card">
+            <StackedColumnChart></StackedColumnChart>
+        </div>
+
+        <div class="chart-card">
+            <LineChart></LineChart>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- ===== SECOND ROW ===== -->
+<div class="grid-dashboard-container second-row">
+
+    <!-- First column -->
+    <div class="chart-card">
+        <ColumnChart></ColumnChart>
+    </div>
+
+    <!-- Second column -->
+    <div class="chart-card">
+        <StackedBarChart></StackedBarChart>
+    </div>
+
+</div>
+
+<style>
+    /* ===== FIRST ROW (GRID + 2 VERTICAL CHARTS) ===== */
+
+    .grid-dashboard-container:first-of-type {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Left panel + Right panel */
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    /* Left panel */
+    .left-panel {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    /* Right side vertical charts */
+    .right-panel {
+        display: flex;
+        flex-direction: column; /* stack vertically */
+        gap: 20px;
+    }
+
+        .right-panel > * {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+
+    /* ===== SECOND ROW (TWO COLUMNS) ===== */
+
+    .grid-dashboard-container:nth-of-type(2) {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* two equal columns */
+        gap: 20px;
+    }
+
+        .grid-dashboard-container:nth-of-type(2) > div {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+
+    /* ===== RESPONSIVE ===== */
+    @@media (max-width: 900px) {
+        .grid-dashboard-container:first-of-type {
+            grid-template-columns: 1fr; /* Stack left + right vertically */
+        }
+
+        .grid-dashboard-container:nth-of-type(2) {
+            grid-template-columns: 1fr; /* stack charts in second row */
+        }
+    }
+
+    /* ===== FIRST ROW (GRID + 2 VERTICAL CHARTS) ===== */
+
+    .first-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* left column + right column */
+        gap: 20px;
+        margin-bottom: 5px;
+    }
+
+    /* Left panel */
+    .left-panel, .chart-card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    /* Right side vertical stack */
+    .right-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+
+    /* ===== SECOND ROW (TWO COLUMNS) ===== */
+
+    .second-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* two equal columns */
+        gap: 20px;
+    }
+
+
+    /* ===== RESPONSIVE ===== */
+    @@media (max-width: 900px) {
+        .first-row {
+            grid-template-columns: 1fr; /* stack vertically */
+        }
+
+        .second-row {
+            grid-template-columns: 1fr; /* stack vertically */
+        }
+    }
+    /* ============================
+               GLOBAL FIXES (NO SCROLL)
+            ============================ */
+    html, body {
+        overflow-x: hidden !important;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    *, *::before, *::after {
+        box-sizing: inherit;
+    }
+
+    /* Images should never overflow */
+    .card img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    /* ============================
+               CALENDAR DASHBOARD AREA
+            ============================ */
+    .calendardashboard-container {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 20px;
+        width: 100%;
+        overflow: hidden;
+    }
+
+        .calendardashboard-container .card {
+            background: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+    .calendar-container {
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .scheduler-wrapper {
+        width: 100%;
+        overflow-x: hidden;
+    }
+
+    .radzen-scheduler {
+        max-width: 100% !important;
+    }
+
+    .event-list-container {
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .day-group {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #ddd;
+    }
+
+    /* ============================
+               DASHBOARD ROW 1 (GRID + 2 VERTICAL CHARTS)
+            ============================ */
+    .grid-dashboard-container {
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+        margin-bottom: 5px;
+    }
+
+    /* FIRST ROW */
+    .first-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Left panel + right column */
+        gap: 20px;
+        width: 100%;
+    }
+
+    .left-panel {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        overflow-x: hidden;
+    }
+
+    .right-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        overflow: hidden;
+    }
+
+    /* Individual Chart Cards */
+    .chart-card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+    }
+
+    /* ============================
+               DASHBOARD ROW 2 (TWO COLUMNS)
+            ============================ */
+    .second-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        width: 100%;
+    }
+
+        .second-row .chart-card {
+            width: 100%;
+            max-width: 100%;
+        }
+
+    /* ============================
+               RESPONSIVE FIXES
+            ============================ */
+    @@media (max-width: 900px) {
+        .calendardashboard-container {
+            grid-template-columns: 1fr;
+        }
+
+        .first-row,
+        .second-row {
+            grid-template-columns: 1fr; /* Stack vertically */
+        }
+    }
+
+    .dashboard-container {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+        border-radius: 12px;
+        flex-wrap: nowrap;
+        margin-bottom: 10px;
+        /*   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                box-sizing: border-box;
+                background-color: white; */
+    }
+
+    .chartcard {
+        flex: 0 0 49%; /* two columns with a small gap */
+        /* background-color: white; */
+        border-radius: 12px;
+        padding: 5px;
+    }
+
+    .currentjobs-container {
+        width: 100%;
+    }
+
+    .calendardashboard-container {
+        display: flex;
+        flex-direction: row; /* 🔥 keep items side-by-side */
+        align-items: stretch; /* make both same height */
+        gap: 10px;
+        height: calc(100vh - 250px); /* adjust as needed */
+        overflow: hidden;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-sizing: border-box;
+        background-color: white;
+        border-radius: 5px;
+    }
+
+    /* Left image card */
+    .card {
+        flex: 0 0 30%; /* 30% width of row */
+        /*    background-color: white; */
+        /* padding: 15px; */
+        /* box-shadow: 0 2px 8px rgba(0,0,0,0.1); */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+        .card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* keeps aspect ratio */
+            border-radius: 8px;
+        }
+
+    /* Right calendar */
+    .calendar-container {
+        flex: 1; /* take remaining width */
+        display: flex;
+        flex-direction: column;
+        /* background-color: white; */
+        /* border-radius: 12px; */
+        padding: 15px;
+        /*   box-shadow: 0 2px 8px rgba(0,0,0,0.1); */
+        overflow: hidden;
+    }
+
+    /* Scheduler wrapper ensures proper sizing */
+    .scheduler-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        min-height: 0; /* prevents flex collapse */
+    }
+
+    /* Make RadzenScheduler fill available height */
+    .calendar-container ::deep .rz-scheduler {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+    }
+
+    /* Optional scroll inside scheduler */
+    .calendar-container ::deep .rz-scheduler-content {
+        flex: 1;
+        overflow: auto;
+    }
+
+    /* Custom List button */
+    /*  .scheduler-custom-button {
+                position: absolute;
+                top: 9px; */
+    /* Move it slightly after the Day button area */
+    /*   right: auto;
+                left: 405px; */ /* adjust this until it aligns visually */
+    /*   z-index: 2;
+                padding: 9px;
+                height: auto;
+                line-height: 1.25rem;
+                min-height: 2.25rem;
+                min-width: 2.25rem;
+                font-size: var(--rz-body-font-size);
+                font-weight: 600;
+            }
+         */
+    .scheduler-custom-button {
+        position: absolute;
+        top: 9px;
+        right: 280px;
+        z-index: 2;
+        padding: 9px;
+        height: auto;
+        line-height: 1.25rem;
+        min-height: 2.25rem;
+        min-width: 1.25rem;
+        font-size: var(--rz-body-font-size);
+        font-weight: 600;
+        border-radius-right: 0px !important;
+        transition: left 0.3s ease;
+    }
+
+    .rz-button-text {
+        font-weight: normal;
+    }
+
+
+    .rz-scheduler-nav-title {
+        margin-left: -30px;
+    }
+    /* Adjust position for small screens */
+    @@media (max-width: 768px) {
+        .scheduler-custom-button {
+            left: auto;
+            right: 10px; /* move to right on mobile */
+            top: 5px;
+        }
+    }
+
+    /* Give space for the List button */
+    .calendar-container ::deep .rz-scheduler-header {
+        padding-right: 60px;
+    }
+
+    .rz-button.rz-primary.rz-shade-default {
+        background-color: var(--rz-scheduler-view-selected-background-color);
+        color: var(--rz-on-primary);
+    }
+
+    .gridcard {
+        display: flex;
+        flex-direction: column;
+        flex: 1; /* take full height available */
+        background-color: white;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+        /* Make the Radzen grid stretch inside the card */
+        .gridcard ::deep .rz-datagrid {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* ensures the grid fills parent */
+        }
+
+        /* Optional: Scroll only grid content (not header/footer) */
+        .gridcard ::deep .rz-datatable-tablewrapper {
+            overflow-y: auto;
+            flex: 1;
+        }
+    /* Allow event text to wrap and be fully visible */
+    .rz-scheduler-event-content, .rz-event-content {
+        white-space: normal !important; /* allow wrapping */
+        overflow: visible !important; /* prevent clipping */
+        text-overflow: clip !important;
+        line-height: 1.2em; /* better spacing */
+        padding: 2px 4px; /* add padding inside events */
+        height: auto;
+    }
+
+    /* Increase the minimum event height to fit multi-line text */
+    .rz-scheduler-event {
+        min-height: 40px !important; /* adjust based on font size */
+        font-size: 0.85rem; /* slightly smaller font */
+    }
+
+    /* Optional: wrap long text in month view specifically */
+    .rz-scheduler-monthview .rz-scheduler-event-content {
+        white-space: normal !important;
+    }
+
+    /* Optional: ensure text isn't clipped in week/day view */
+    .rz-scheduler-weekview .rz-scheduler-event-content,
+    .rz-scheduler-dayview .rz-scheduler-event-content {
+        white-space: normal !important;
+    }
+
+    /* Tooltip styling (optional) */
+    .rz-scheduler-event[title]:hover::after {
+        content: attr(title);
+        position: absolute;
+        background: rgba(0,0,0,0.75);
+        color: white;
+        padding: 4px 6px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        z-index: 1000;
+        white-space: pre-line;
+    }
+
+    .rz-event-content {
+        background: #ff4601;
+    }
+
+    .scheduler-custom-button {
+        margin-bottom: 10px;
+    }
+
+    .event-list-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        padding: 10px;
+        font-family: Arial, sans-serif;
+        margin-top: 30px;
+        margin-bottom: 30px;
+        overflow-y: auto;
+    }
+
+    .day-group {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 10px;
+    }
+
+    .day-header-left {
+        flex-grow: 1;
+    }
+
+    .day-header-right {
+        white-space: nowrap;
+        color: #666;
+        font-weight: 600;
+        align-self: center;
+    }
+
+    .event-items {
+        margin-top: 8px;
+    }
+
+    .event-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+        color: #333;
+    }
+
+    .event-time {
+        width: 55px;
+        font-size: 0.85em;
+        color: #999;
+        text-align: right;
+    }
+
+    .event-dot {
+        width: 10px;
+        height: 10px;
+        background-color: #5a5af3;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .event-text {
+        flex-grow: 1;
+        font-size: 0.95em;
+    }
+
+    .list-mode .rz-view {
+        display: none;
+    }
+
+    /*   .calendar-mode .rz-week-view,
+        .calendar-mode .rz-day-view {
+            display: none;
+        } */
+
+    .event-list-container {
+        background-color: #fff; /* white background */
+        color: #000; /* black text */
+        padding: 10px;
+        max-height: 400px; /* limit height */
+        overflow-y: auto; /* scroll if needed */
+        border: 1px solid #ccc; /* visible border */
+        font-family: Arial, sans-serif;
+    }
+
+    .day-group {
+        margin-bottom: 20px;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 10px;
+    }
+
+    .day-header-left strong {
+        font-size: 1.2em;
+        color: #333;
+    }
+
+    .day-header-right {
+        font-size: 0.9em;
+        color: #666;
+        text-align: right;
+        margin-top: -24px;
+    }
+
+    .event-item {
+        display: flex;
+        align-items: center;
+        margin: 5px 0;
+        font-size: 1em;
+        color: #222;
+    }
+
+    .event-time {
+        width: 60px;
+        font-weight: bold;
+    }
+
+    .event-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        background-color: #007bff; /* bright blue dot */
+        border-radius: 50%;
+        margin: 0 8px;
+    }
+
+    .event-text {
+        flex-grow: 1;
+    }
+    /*
+        .calendardashboard-container, .calendar-container, .scheduler-wrapper, .event-list-container {
+            outline: 2px solid red !important; /* visualize container sizes */
+    min-height: 100px !important; /* force visible height */
+    }
+
+    */
+
+    .list-mode .rz-view {
+        display: none !important;
+    }
+
+    .list-mode .rz-scheduler {
+        height: 50px !important;
+    }
+
+    .list-mode .event-list-container {
+        display: flex !important;
+    }
+
+    .no-events {
+        width: 100%;
+        height: 100%;
+        display: table;
+    }
+
+        .no-events p {
+            display: table-cell;
+            vertical-align: middle;
+            text-align: center
+        }
+</style>
+@code
+{
+    private IEnumerable<MyEventViewModel>? calendarEvents;
+    private bool showCalendar = true;
+    private string ToggleButtonText => showCalendar ? "List View" : "Calendar View";
+    private Dictionary<DateTime, List<MyEventViewModel>> GroupedEvents { get; set; } = new();
+    private RadzenScheduler<MyEventViewModel>? scheduler;
+    private bool _schedulerInitialized;
+    private string GetCurrentView()
+    {
+        if (scheduler == null)
+            return "Month";
+
+        var days = (scheduler.SelectedView.EndDate - scheduler.SelectedView.StartDate).TotalDays;
+
+        if (days <= 1)
+            return "Day";
+
+        if (days <= 7)
+            return "Week";
+
+        return "Month";
+    }
+
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     calendarEvents = await ApiClient.GetUserCalendarAsync("hr@stowellinc.com");
+    //     // var view = GetCurrentView();
+    //     // // GroupEvents();
+    //     // var test = scheduler.SelectedView.Text;
+    //     // GroupEventsByView(view);
+    // }
+    private DateTime? _lastDate;
+    private string? _lastView;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (scheduler == null)
+            return;
+
+        // Initialize once when scheduler becomes available
+        if (!_schedulerInitialized)
+        {
+            _lastView = scheduler.SelectedView?.Text;
+            _lastDate = scheduler.CurrentDate;
+            _schedulerInitialized = true;
+            return;
+        }
+
+        var currentView = scheduler.SelectedView?.Text;
+        var currentDate = scheduler.CurrentDate;
+
+        // 🚨 No change → exit
+        if (_lastView == currentView && _lastDate == currentDate)
+            return;
+
+        // ✅ Change detected
+        _lastView = currentView;
+        _lastDate = currentDate;
+
+        // Update list only when list view is active
+        if (!showCalendar)
+        {
+            GroupEventsByView(currentView!, currentDate);
+            InvokeAsync(StateHasChanged);
+        }
+    }
+    private void GroupEventsByView(string view, DateTime baseDate)
+    {
+        if (calendarEvents == null)
+            return;
+
+        IEnumerable<MyEventViewModel> filtered;
+
+        if (view == "Month")
+        {
+            var start = new DateTime(baseDate.Year, baseDate.Month, 1);
+            var end = start.AddMonths(1);
+
+            filtered = calendarEvents
+                .Where(e => e.Start >= start && e.Start < end);
+        }
+        else if (view == "Week")
+        {
+            var diff = (7 + (baseDate.DayOfWeek - System.DayOfWeek.Monday)) % 7;
+            var start = baseDate.Date.AddDays(-diff);
+            var end = start.AddDays(7);
+
+            filtered = calendarEvents
+                .Where(e => e.Start >= start && e.Start < end);
+        }
+        else // Day
+        {
+            filtered = calendarEvents
+                .Where(e => e.Start.Date == baseDate.Date);
+        }
+
+        GroupedEvents = filtered
+            .GroupBy(e => e.Start.Date)
+            .OrderBy(g => g.Key)
+            .ToDictionary(g => g.Key, g => g.ToList());
+    }
+
+    // private void GroupEventsByView(string view)
+    // {
+    //     if (calendarEvents == null)
+    //         return;
+
+    //     var date = scheduler?.SelectedView.StartDate ?? DateTime.Today;
+    //     IEnumerable<MyEventViewModel> filtered;
+
+    //     if (view == "Day")
+    //     {
+    //         filtered = calendarEvents.Where(e => e.Start.Date == date.Date);
+    //     }
+    //     else if (view == "Week")
+    //     {
+    //         var start = date.Date.AddDays(-(int)date.DayOfWeek);
+    //         var end = start.AddDays(7);
+    //         filtered = calendarEvents.Where(e => e.Start >= start && e.Start < end);
+    //     }
+    //     else // Month
+    //     {
+    //         filtered = calendarEvents.Where(e =>
+    //             e.Start.Year == date.Year &&
+    //             e.Start.Month == date.Month);
+    //     }
+
+    //     GroupedEvents = filtered
+    //         .GroupBy(e => e.Start.Date)
+    //         .OrderBy(g => g.Key)
+    //         .ToDictionary(g => g.Key, g => g.ToList());
+    // }
+
+    // private void ToggleView()
+    // {
+    //     showCalendar = !showCalendar;
+    //     if (!showCalendar)
+    //     {
+    //         GroupEvents();
+    //         var view = GetCurrentView();
+    //         // GroupEvents();
+    //         var test = scheduler.SelectedView.Text;
+    //         GroupEventsByView(view);
+    //     }
+    // }
+    private void ToggleView()
+    {
+        showCalendar = !showCalendar;
+
+        // When switching to List View → group immediately
+        if (!showCalendar && scheduler != null)
+        {
+            GroupEventsByView(
+                scheduler.SelectedView?.Text ?? "Month",
+                scheduler.CurrentDate
+            );
+        }
+    }
+
+
+    private void GroupEvents()
+    {
+        if (calendarEvents != null)
+        {
+            GroupedEvents = calendarEvents
+                .GroupBy(e => e.Start.Date)
+                .OrderBy(g => g.Key)
+                .ToDictionary(g => g.Key, g => g.ToList());
+            //          GroupedEvents =
+            // FilteredEvents
+            //     .GroupBy(e => e.Start.Date)
+            //     .OrderBy(g => g.Key)
+            //     .ToDictionary(g => g.Key, g => g.ToList());
+
+        }
+    }
+
+}

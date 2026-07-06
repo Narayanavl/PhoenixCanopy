@@ -1,0 +1,77 @@
+﻿@page "/UserProfile"
+@attribute [Authorize]
+@inject Microsoft.Identity.Web.ITokenAcquisition TokenAcquisition
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Graph
+@using Microsoft.Identity.Web
+@inject GraphServiceClient GraphClient
+@inject NavigationManager navigationManager
+@* <h3>Home Page</h3> *@
+
+@if (loading)
+{
+    <p>Loading user info...</p>
+}
+else
+{
+    @* <p><strong>Name:</strong> @DisplayName</p> *@
+
+    @if (!string.IsNullOrEmpty(PhotoBase64))
+    {
+        <img src="data:image/png;base64,@PhotoBase64"
+             alt="Profile Photo"
+             height="48" />
+    }
+    else
+    {
+        <img alt="image" height="48" src="images/p360admin.jpg">
+    }
+    <div class="name">@DisplayName</div>
+    <div class="role">@Role</div>
+}
+
+@code {
+    private bool loading = true;
+    private string? DisplayName;
+    private string? PhotoBase64;
+    private string? Role;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var me = await GraphClient.Me.Request().GetAsync();
+            DisplayName = me?.DisplayName;
+            Role = me?.JobTitle;
+            try
+            {
+                using var photoStream = await GraphClient.Me.Photo.Content.Request().GetAsync();
+                using var ms = new MemoryStream();
+                await photoStream.CopyToAsync(ms);
+                PhotoBase64 = Convert.ToBase64String(ms.ToArray());
+            }
+            catch
+            {
+                // No photo
+            }
+            // Redirect to another page after loading
+            // navigationManager.NavigateTo("/Home/StowellHome", true);
+        }
+        catch (Microsoft.Identity.Client.MsalUiRequiredException ex)
+        {
+            navigationManager.NavigateTo("/MicrosoftIdentity/Account/SignIn?redirectUri=/", true);
+        }
+        catch (Microsoft.Graph.ServiceException ex) when (ex.InnerException is Microsoft.Identity.Web.MicrosoftIdentityWebChallengeUserException challenge)
+        {
+            navigationManager.NavigateTo("/MicrosoftIdentity/Account/SignIn?redirectUri=/", true);
+        }
+        catch (Exception ex)
+        {
+            DisplayName = $"Error: {ex.Message}";
+            //navigationManager.NavigateTo("authentication/login?redirectUri=/Home/StowellHome", true);
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+}

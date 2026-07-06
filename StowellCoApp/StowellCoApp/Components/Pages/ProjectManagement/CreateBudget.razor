@@ -1,0 +1,273 @@
+﻿@page "/ProjectBudgetConfiguration/{Action}/{ProjectId:int}"
+@inherits CreateBudgetBase
+@using Microsoft.AspNetCore.Components.Forms;
+@using Radzen
+@using Radzen.Blazor
+<PageTitle>Budget Configuration</PageTitle>
+<h3>Budget Configuration</h3>
+<hr />
+
+<div class="wrapper wrapper-content">
+    <div class="row white-bg p-10 my-3" style="margin-left:5px;">
+        <div class="col-lg-12">
+            <div class="mb-3">
+                <div class="row">
+
+                    <div class="col-md-5 mr-3">
+                        <label class="form-label" for="jobDropdown">Job Number</label>
+
+                        <RadzenDropDown Data="@_costCodeRecords"
+                                        TextProperty="RecJobNumber"
+                                        ValueProperty="RecNum"
+                                        @bind-Value="selectedProjectId" Change="OnJobChanged"
+                                        Placeholder="Select ProjectId" width="100%"/>
+                    </div>
+
+
+                    <div class="col-md-3">
+                        <label class="form-label" for="phaseDropdown">Phase</label>
+                        <RadzenDropDown Data="@_phaseModel"
+                                        TextProperty="PhaseName"
+                                        ValueProperty="PhaseNum"
+                                        @bind-Value="selectedPhaseId" Change="OnPhaseChanged"
+                                        Placeholder="Select Phase" width="100%" />
+                    </div>
+                </div>
+
+                <div class="form-group row my-3">
+                    <div class="col-md-8">
+                        <RadzenDataGrid Data="@budgetRecords" TItem="StowellCoApp.DTO.BudgetRecord" @ref="budgetgrid">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="StowellCoApp.DTO.BudgetRecord" Title="Cost Code Description">
+                                    <Template Context="data">
+
+                                        <RadzenAutoComplete @bind-Value="data.CostCodeDescription"
+                                                            LoadData="LoadCostCodeDescriptions"
+                                                            Data="@costCodeDescriptions"
+                                                            TextProperty="Description"
+                                                            AllowFiltering="true"
+                                                            MinLength="1"
+                                                            Placeholder="Select Cost Code Description"
+                                                            Style="width:100%;" />
+                                    </Template>
+                                </RadzenDataGridColumn>
+
+                                <!-- Total Budget Textbox -->
+                                <RadzenDataGridColumn TItem="StowellCoApp.DTO.BudgetRecord" Property="TotalBudget" Title="Total Budget">
+                                    <Template Context="data">
+                                        <RadzenNumeric @bind-Value="data.TotalBudget"
+                                                       ShowUpDown="false"
+                                                       TValue="decimal?"
+                                                       Disabled="@(Action == "CreateBudget" ? false : true)"
+                                                       Style="width: 100%;"
+                                                       Format="C2"
+                                                       Culture="@UsCulture" />
+                                    </Template>
+                                </RadzenDataGridColumn>
+
+                                <!-- Update Budget -->
+                                <RadzenDataGridColumn TItem="StowellCoApp.DTO.BudgetRecord" Property="TotalBudget" Title="Update Budget" Visible="@(Action == "CreateBudget" ? false : true)">
+                                    <Template Context="data">
+                                        <RadzenNumeric @bind-Value="data.UpdateBudget" Format="C2"
+                                                       Culture="@UsCulture" TValue="decimal?" Style="width: 100%;" ShowUpDown="false" />
+                                    </Template>
+                                </RadzenDataGridColumn>
+
+                            </Columns>
+                        </RadzenDataGrid>
+
+
+                    </div>
+
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-4">
+                        @if (Action == "CreateBudget")
+                        {
+                            <button id="addRowBtn" class="btn btn-primary" @onclick="AddRow">Add Row</button>
+                        }
+                    </div>
+                </div>
+                <div class="form-group row">&nbsp;</div>
+                <div class="form-group row" style="margin-left:5px;">
+                 
+
+                   @*  <form id="excelUploadForm" enctype="multipart/form-data">
+                        <input type="file" name="file" id="file" accept=".xlsx,.xls" />
+                        <button class="btn btn-sm btn-primary waves-effect waves-themed" type="submit">Upload</button>
+                    </form> *@
+                    <div class="col-sm-8">
+
+                       @*  <RadzenCard Variant="Variant.Outlined" Style="max-width: 600px; margin:auto;">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">
+                                Select an Excel file to upload and click Upload
+                            </RadzenText> *@
+                            <RadzenUpload @ref="radzenUpload" ChooseText="Choose File"
+                                          Multiple="false"
+                                          Accept=".xls,.xlsx"
+                                          Style="max-width: 450px"
+                                          Change="@OnFileChange"
+                                          Progress=@OnProgress
+                                          Complete=@OnUploadComplete
+                                          Error=@OnUploadError
+                                          Auto="false">
+                            </RadzenUpload>
+                        <RadzenButton Text="Upload" Click="@OnUpload" disabled="@IsSaving" class="btn btn-sm btn-secondary waves-effect waves-themed" />
+                       @*  </RadzenCard> *@
+                        <button id="saveAllBtn" class="btn btn-sm btn-primary waves-effect waves-themed" @onclick="SaveBudget">Save</button>
+                        <button id="btnSubmit" disabled="@isSubmitDisabled"
+                                class="btn btn-sm btn-primary waves-effect waves-themed" @onclick="SubmitBudget">
+                            Submit
+                        </button>
+                        @if (IsSaving)
+                        {
+                            <div class="overlay">
+                                <div class="spinner"></div>
+                                <div class="saving-text"></div>
+                            </div>
+                        }
+
+                      
+                    </div>
+                </div>
+
+              
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .rz-notification {
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        right: auto !important;
+    }
+
+    .radzen-notification {
+        z-index: 9999 !important;
+        position: fixed;
+        top: 10px;
+        right: 10px;
+    }
+    /* Style for the autocomplete input field */
+    .radzen-autocomplete input {
+        width: 100%;
+        padding: 10px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    /* Style for the dropdown list */
+    .radzen-autocomplete .rz-dropdown {
+        border: 1px solid #ccc;
+        background-color: #fff;
+        border-radius: 4px;
+        max-height: 200px; /* Set a max height to avoid long lists */
+        overflow-y: auto; /* Scrollable if the list exceeds max height */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Highlight the item when hovering */
+    .radzen-autocomplete .rz-list-item:hover {
+        background-color: #f0f0f0;
+    }
+
+    /* Highlight the selected item */
+    .radzen-autocomplete .rz-list-item-selected {
+        background-color: #007bff;
+        color: white;
+    }
+
+    /* Focus styling */
+    .radzen-autocomplete input:focus {
+        border-color: #007bff;
+        outline: none;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    /* Clear button styling */
+    .radzen-autocomplete .rz-clear-button {
+        color: #007bff;
+        font-size: 14px;
+    }
+
+        .radzen-autocomplete .rz-clear-button:hover {
+            color: #0056b3;
+        }
+
+    /* Style for individual dropdown items */
+    .radzen-autocomplete .rz-list-item {
+        padding: 8px;
+        font-size: 14px;
+        color: #333;
+    }
+
+    /* Style for the empty/no results message */
+    .radzen-autocomplete .rz-no-results {
+        padding: 8px;
+        color: #999;
+    }
+    /* Gray overlay */
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(128, 128, 128, 0.6); /* gray overlay */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    /* CSS Spinner */
+    .spinner {
+        border: 8px solid #e0e0e0; /* Light border */
+        border-top: 8px solid #007bff; /* Blue spinning section */
+        border-radius: 50%;
+        width: 70px;
+        height: 70px;
+        animation: spin 1s linear infinite;
+    }
+
+    /* Spinner animation */
+    @@keyframes spin {
+        0%
+
+    {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+
+    }
+
+    .saving-text {
+        margin-top: 15px;
+        font-size: 1.4rem;
+        color: white;
+        font-weight: bold;
+    }
+
+    .rz-fileupload-choose:not(.rz-state-disabled) {
+        background-color: transparent;
+        color: black;
+    }
+
+    .rz-button.rz-primary.rz-shade-default {
+        background-color: var(--rz-series-1);
+        color: var(--rz-on-primary);
+        padding: 5px 10px;
+    }
+
+    .btn-primary {
+        padding: 7px 15px;
+    }
+
+</style>

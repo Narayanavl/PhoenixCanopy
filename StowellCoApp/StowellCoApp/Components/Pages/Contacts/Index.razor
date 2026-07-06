@@ -1,0 +1,400 @@
+﻿@page "/Contacts"
+@using Radzen
+@using Radzen.Blazor
+@using StowellCoApp.DTO
+@using StowellCoApp.Components.Pages.ProjectManagement
+@using StowellCoApp.Services
+@inject NavigationManager Nav
+@inherits IndexBase
+<PageTitle>Contacts</PageTitle>
+<h3>Contacts</h3>
+<hr />
+
+@if (contactGroups == null || contactGroups.Count() == 0)
+{
+    <p>Loading ...</p>  <!-- Show a loading message or spinner if contactGroups is empty -->
+}
+else
+{
+   
+
+
+@* <RadzenTabs RenderMode="TabRenderMode.Client" TabPosition="tabPosition">
+    <Tabs>
+        @foreach (var tab in contactGroups)
+    {
+        <RadzenTabsItem Text="@tab.DisplayName" @key="tab.Id" @onclick="() => OnTabChanged(tab.Id)">
+              <h3>@tab.DisplayName</h3>
+            <div class="row">
+                    @if(contactGroupMembers!=null && contactGroupMembers.Count() > 0)
+                    {
+                       
+                        @foreach (var tabData in contactGroupMembers)
+    {
+                                <div class="col-lg-4">
+                                    <div class="contact-box">
+                                        <div class="row" data-discover="true">
+                                            <div class="col-4">
+                                                <div class="text-center">
+                                                    @if (tabData.photoBase64 != null)
+                                                    {
+                                                        <img src="data:image/jpeg;base64,@tabData.photoBase64
+                                                        " alt="User Photo" style="width:100px;height:100px;border-radius:100%"/>
+                                                    }
+                                                    else
+                                                    {
+                                                        <img alt="@tabData.DisplayName avatar" class="rounded-circle mt-1 img-fluid" src="/img/demo/avatars/icon-dummy-user.png">
+                                                    }
+                                                    <div class="mt-1 font-bold">@tabData.JobTitle</div>
+                        </div>
+                    </div>
+                    <div class="col-8 custom-address">
+                         <h3><strong>@tabData.DisplayName</strong></h3>
+                      
+                         @if(tabData.Id == "a0141813-6771-4141-8020-0f4d331f5de6" && !string.IsNullOrEmpty(tabData.StreetAddress))
+                                                {
+                                                    <i class="fa-solid fa-location-dot" style="color:gray;margin-right:5px"></i> <a href="@tabData.StreetAddress" target="_blank">@tabData.DisplayName</a>
+                                                }
+
+                                                else if(!string.IsNullOrEmpty(tabData.StreetAddress))
+                                                {
+                                    <i class="fa-solid fa-location-dot" style="color:gray;margin-right:5px"></i> @tabData.StreetAddress
+
+                                                }
+                            
+                        <address>
+                            @if(!string.IsNullOrEmpty(tabData.City) || !string.IsNullOrEmpty(tabData.State) 
+                            || !string.IsNullOrEmpty(@tabData.PostalCode) || !string.IsNullOrEmpty(@tabData.Phone)){
+                            <span>@tabData.City, @tabData.State @tabData.PostalCode<br>
+                            <span title="Phone">P:</span> @tabData.Phone<br></span>
+                            }
+                                <a href="mailto:shorgeshimer@stowellinc.com">@tabData.Mail</a>
+                        </address> 
+                            
+                    </div>
+                </div>
+            </div>
+        </div>
+                        
+    }
+                    }
+                      </div>
+                </RadzenTabsItem>
+    }
+            </Tabs>
+            </RadzenTabs> *@
+          @*   <RadzenTabs 
+            TabPosition="tabPosition"
+             SelectedIndexChanged="OnTabIndexChanged"
+            SelectedIndex="selectedIndex">
+
+    <Tabs>
+        @foreach (var tab in contactGroups)
+        {
+            <RadzenTabsItem Text="@tab.DisplayName" @key="tab.Id">
+                <h3>@tab.DisplayName</h3>
+                <div class="row">
+                    @if(contactGroupMembers != null && contactGroupMembers.Any())
+                    {
+                        @foreach (var tabData in contactGroupMembers)
+                        {
+                            <div class="col-lg-4">
+                                <div class="contact-box">
+                                    <div class="row">
+                                        <div class="col-4 text-center">
+                                            @if (!string.IsNullOrEmpty(tabData.photoBase64))
+                                            {
+                                                <img src="data:image/jpeg;base64,@tabData.photoBase64"
+                                                     alt="User Photo"
+                                                     style="width:100px;height:100px;border-radius:100%" />
+                                            }
+                                            else
+                                            {
+                                                <img src="/img/demo/avatars/icon-dummy-user.png" 
+                                                     alt="@tabData.DisplayName avatar"
+                                                     class="rounded-circle mt-1 img-fluid" />
+                                            }
+                                            <div class="mt-1 font-bold">@tabData.JobTitle</div>
+                                        </div>
+                                        <div class="col-8 custom-address">
+                                            <h3><strong>@tabData.DisplayName</strong></h3>
+
+                                            @if (!string.IsNullOrEmpty(tabData.StreetAddress))
+                                            {
+                                                <i class="fa-solid fa-location-dot" style="color:gray;margin-right:5px"></i>
+                                                <a href="@tabData.StreetAddress" target="_blank">@tabData.StreetAddress</a>
+                                            }
+
+                                            <address>
+                                                @if (!string.IsNullOrEmpty(tabData.City) ||
+                                                     !string.IsNullOrEmpty(tabData.State) ||
+                                                     !string.IsNullOrEmpty(tabData.PostalCode) ||
+                                                     !string.IsNullOrEmpty(tabData.Phone))
+                                                {
+                                                    <span>
+                                                        @tabData.City, @tabData.State @tabData.PostalCode<br>
+                                                        <span title="Phone">P:</span> @tabData.Phone<br>
+                                                    </span>
+                                                }
+                                                <a href="mailto:@tabData.Mail">@tabData.Mail</a>
+                                            </address>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="col-12">
+                            <p>No members in this group.</p>
+                        </div>
+                    }
+                </div>
+            </RadzenTabsItem>
+        }
+    </Tabs>
+</RadzenTabs> *@
+<RadzenTabs TabPosition="tabPosition"
+            SelectedIndexChanged="OnTabIndexChanged"
+            SelectedIndex="@selectedIndex">
+
+    <Tabs>
+        @foreach (var tab in contactGroups)
+        {
+            <RadzenTabsItem Text="@tab.DisplayName" @key="tab.Id">
+                <h3>@tab.DisplayName</h3>
+
+                @if (isLoading)
+                {
+                    <div class="text-center mt-3">
+                        @* <RadzenProgressBar Mode="ProgressBarMode.Indeterminate" Style="width:50%;" /> *@
+                        <p>Loading members...</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="row">
+                        @if (contactGroupMembers != null && contactGroupMembers.Any())
+                        {
+                            @foreach (var member in contactGroupMembers)
+                            {
+                                <div class="col-lg-4">
+                                    <div class="contact-box">
+                                        <div class="row">
+                                            <div class="col-4 text-center">
+                                                @if (!string.IsNullOrEmpty(member.photoBase64))
+                                                {
+                                                    <img src="data:image/jpeg;base64,@member.photoBase64"
+                                                         alt="User Photo"
+                                                         style="width:100px;height:100px;border-radius:100%" />
+                                                }
+                                                else
+                                                {
+                                                    <img src="/img/demo/avatars/icon-dummy-user.png"
+                                                         class="rounded-circle mt-1 img-fluid" />
+                                                }
+                                                <div class="mt-1 font-bold">@member.JobTitle</div>
+                                            </div>
+                                            <div class="col-8 custom-address">
+                                                <h3><strong>@member.DisplayName</strong></h3>
+                                                @if (!string.IsNullOrEmpty(member.StreetAddress))
+                                                {
+                                                    <i class="fa-solid fa-location-dot" style="color:gray;margin-right:5px"></i>
+                                                    <a href="@member.StreetAddress" target="_blank">@member.StreetAddress</a>
+                                                }
+                                                <address>
+                                                    @if (!string.IsNullOrEmpty(member.City) ||
+                                                         !string.IsNullOrEmpty(member.State) ||
+                                                         !string.IsNullOrEmpty(member.PostalCode) ||
+                                                         !string.IsNullOrEmpty(member.Phone))
+                                                    {
+                                                        <span>
+                                                            @member.City, @member.State @member.PostalCode<br>
+                                                            <span title="Phone">P:</span> @member.Phone<br>
+                                                        </span>
+                                                    }
+                                                    <a href="mailto:@member.Mail">@member.Mail</a>
+                                                </address>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="col-12">
+                                <p>No members in this group.</p>
+                            </div>
+                        }
+                    </div>
+                }
+            </RadzenTabsItem>
+        }
+    </Tabs>
+</RadzenTabs>
+
+            }
+            @code{
+                TabPosition tabPosition = TabPosition.Top;
+            }
+<style>
+    /* -----------------------------
+               TAB NAVIGATION
+            --------------------------------*/
+            .rz-tabview-top>.rz-tabview-nav li{
+               width: 170px;
+    margin: 5px;
+            }
+    .nav-tabs .nav-link {
+        padding: 10px 18px;
+        font-weight: 600;
+        color: #555;
+        border-radius: 0;
+        transition: background-color .25s, color .25s, border-color .25s;
+    }
+
+        .nav-tabs .nav-link:hover {
+            background-color: #f5f5f5;
+            color: #222;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: #fff;
+            color: #007bff;
+            border-color: #dee2e6 #dee2e6 #fff;
+            border-bottom: 2px solid #007bff;
+        }
+
+    /* Better spacing between tabs */
+    .nav-tabs .nav-item {
+        margin-right: 5px;
+    }
+
+    /* Remove focus outline when clicking tabs */
+    .nav-tabs .nav-link:focus {
+        box-shadow: none;
+    }
+
+    /* -----------------------------
+               TAB CONTENT BOX
+            --------------------------------*/
+
+    .tab-content-box,
+    .project-tab-box {
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-top: none;
+        padding: 20px;
+        border-radius: 0 0 4px 4px;
+    }
+
+    /* Slight fade animation on tab switch */
+    .tab-switch-fade {
+        animation: fadeIn .25s ease;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* -----------------------------
+               DATA ROWS & LABEL STYLING
+            --------------------------------*/
+
+    .row.mb-2 {
+        padding: 6px 0;
+    }
+
+    .row .font-weight-bold {
+        color: #444;
+    }
+
+    /* Optional alternating background rows */
+    .row.mb-2:nth-child(odd) {
+        background-color: #fafafa;
+    }
+
+    /* -----------------------------
+               TABLE STYLING (Financials / Reporting)
+            --------------------------------*/
+
+    .table th {
+        background-color: #f1f1f1;
+        font-weight: 600;
+    }
+
+    .table td,
+    .table th {
+        vertical-align: middle;
+    }
+
+    /* Improve table borders */
+    .table-bordered td,
+    .table-bordered th {
+        border-color: #dcdcdc;
+    }
+
+    /* Hover effect for table rows */
+    .table-striped tbody tr:hover {
+        background-color: #f0f0f0;
+        cursor: default;
+    }
+
+    .nav-tabs {
+        display: flex;
+        list-style: none;
+    }
+
+    h2 {
+        text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+        color: #676a6c !important;
+        font-weight: 500;
+    }
+    /* Ensure RadzenTabs container wraps its children */
+.rz-tabview-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start; /* Optionally adjust alignment of wrapped items */
+}
+
+/* Adjust width of individual tabs so they fit nicely */
+.rz-tabview-nav .rz-tabview-item {
+    flex: 1 1 100px;  /* Minimum width of 100px per tab */
+    max-width: 200px;  /* Optional: max-width per tab */
+    margin: 2px;  /* Optional: space between tabs */
+}
+
+/* Optional: Style for better tab visual appearance */
+.rz-tabview-nav .rz-tabview-item {
+    white-space: nowrap;  /* Prevent text overflow */
+}
+.custom-address h3{
+    color: gray;
+    font-weight: normal;
+}
+.rz-tabview-nav .rz-tabview-selected {
+    background-color: #000;
+    color:#fff !important;
+    border-top-color:#FE866D;
+}
+.rz-tabview-top>.rz-tabview-nav .rz-tabview-selected{
+border-top-color:#FE866D;
+}
+.rz-tabview-top>.rz-tabview-nav li:hover:not(.rz-tabview-selected):not(.rz-state-disabled){
+    border-top-color:#FE866D;
+}
+.rz-tabview-top>.rz-tabview-nav li{
+    color:#000;
+}
+
+</style>
+
+

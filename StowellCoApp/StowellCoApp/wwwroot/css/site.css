@@ -1,0 +1,346 @@
+/* =========================
+   GLOBAL LAYOUT
+   ========================= */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f7f9fc;
+    height: 100%;
+}
+
+.layout-wrapper {
+    display: flex;
+    /*height: 100vh;
+    overflow: hidden;*/
+    flex: 1 0 auto;
+}
+
+/* =========================
+   LEFT SIDEBAR
+   ========================= */
+.sidebar {
+    width: 235px;
+    background-color: #000;
+    /*#01355f*/
+    color: white;
+    display: flex;
+    flex-direction: column;
+    padding: 5px 10px;
+}
+
+.logo {
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.user-info {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+    .user-info .name {
+        font-weight: 400;
+        font-size: 1rem;
+    }
+
+    .user-info .role {
+        font-size: 0.85rem;
+        color: #9ca3af;
+    }
+
+/* NavMenu */
+.nav-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-menu li {
+    margin: 5px 0;
+}
+
+.nav-menu a {
+    display: block;
+    color: #ffffff;
+    text-decoration: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: background 0.2s;
+}
+
+    .nav-menu a:hover,
+    .nav-menu a.active {
+        background-color: rgb(217,50,21);
+    }
+
+/* Collapsible submenu */
+.menu-toggle {
+    width: 100%;
+    background: none;
+    border: none;
+    color: #ffffff;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size:15px;
+}
+
+.submenu {
+    list-style: none;
+    padding-left: 20px !important;
+}
+
+    .submenu a {
+        font-size: 14px;
+        background-color: #2d2b2b;
+        padding: 0.8125rem 2rem 0.8125rem 2rem;
+        border-radius: 6px;
+    }
+
+        .submenu a:hover {
+            background-color: #FE866D;
+        }
+
+/* =========================
+   MAIN AREA
+   ========================= */
+.main-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Topbar */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    height: 3.5rem;
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+    .topbar input[type="text"] {
+        width: 60%;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        outline: none;
+    }
+
+.top-icons {
+    display: flex;
+    gap: 10px;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+    color: #374151;
+}
+
+    .icon-btn:hover {
+        color: #2563eb;
+    }
+
+/* Breadcrumbs */
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.875rem;
+    background-color: #f3f4f6;
+    border-bottom: 1px solid #d1d5db;
+}
+
+.breadcrumb-link {
+  /*  color: #2563eb;
+    text-decoration: none;*/
+}
+
+    .breadcrumb-link:hover {
+        /*text-decoration: underline;*/
+    }
+
+/* Content + right bar wrapper */
+.content-right-wrapper {
+    display: flex;
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Main content */
+.content-wrapper {
+    flex: 1;
+    /*overflow-y: auto;*/
+    padding: 0.5rem 0.5rem;
+}
+
+/* Right slim menu */
+.right-bar {
+    width: 80px;
+    flex-shrink: 0;
+    background-color: #fff;
+    /*border-left: 1px solid #d1d5db;*/
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 0;
+    /*height:100vh;
+    overflow:hidden;*/
+}
+
+    .right-bar a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: #374151;
+        font-size: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+        .right-bar a i {
+            font-size: 1.25rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .right-bar a:hover {
+            color: #2563eb;
+        }
+
+/* Footer */
+footer {
+    height: 3rem;
+    background-color: #f3f4f6;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0 2rem;
+    border-top: 1px solid #d1d5db;
+    gap: 1.5rem;
+    font-size: 0.875rem;
+}
+
+    footer a {
+        color: #374151;
+        text-decoration: none;
+    }
+
+        footer a:hover {
+            color: #2563eb;
+        }
+
+/* Scrollbars */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #c0c0c0;
+    border-radius: 8px;
+}
+.nav-menu a i.fas {
+    margin-right: 0.25rem;
+}
+
+/*.nav-menu a i.fa-house-chimney {
+    color: #ff6347;*/ /* Tomato red */
+/*}*/
+.nav-menu button i.fas {
+    margin-right: 0.25rem;
+}
+
+.sidebar .home {
+    color: #ff6347;
+}
+
+.sidebar .project {
+    color: yellow;
+}
+
+.sidebar .estimation {
+    color: #32cd32;
+}
+
+.sidebar .accounting {
+    color: #ffa500;
+}
+
+.sidebar .hr {
+    color: #00bfff;
+}
+
+.sidebar .reports {
+    color: #ff69b4;
+}
+
+.sidebar .admin {
+    color: #20b2aa;
+}
+
+.sidebar .contacts {
+    color: #ff4500;
+}
+.icon-toolbar {
+    display: flex;
+    gap: 15px; /* space between icons */
+    /*background-color: #1e2a47;*/ /* dark blue background similar to screenshot */
+    padding: 10px 15px;
+    border-radius: 6px;
+    align-items: center;
+}
+
+    .icon-toolbar button {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: #fff; /* subtle blue */
+        font-size: 20px;
+        transition: color 0.3s ease;
+        padding: 6px;
+        border-radius: 4px;
+    }
+
+        .icon-toolbar button:hover {
+            color: #f0f0f0; /* lighter color on hover */
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+.rz-button.rz-danger.rz-shade-default {
+    background: none !important;
+    color: red !important;
+}
+.rz-scheduler-nav-prev-next .rz-button, .rz-button.rz-primary.rz-shade-default {
+    
+    background-color: #000 !important;
+}
+.rz-scheduler-nav-views .rz-button.rz-primary.rz-state-active {
+    border-color: #000 !important;
+}
+.rz-event-content {
+    background-color: #FE866D !important;
+}
+.rz-grid-table td .rz-cell-data a {
+    color: #FE866D !important;
+}
+.rz-scheme-pastel .rz-series-0 {
+    fill: #1F2933 !important;
+    stroke: #1F2933 !important;
+}
+.rz-scheme-pastel .rz-series-1 {
+    fill: #B8BCC2 !important;
+    stroke: #B8BCC2 !important;
+}
+.rz-scheme-pastel .rz-series-2 {
+    fill: #F36A3D !important;
+    stroke: #F36A3D !important;
+}

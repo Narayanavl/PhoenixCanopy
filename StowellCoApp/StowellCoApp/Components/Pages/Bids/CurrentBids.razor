@@ -1,0 +1,284 @@
+﻿@page "/Bids/CurrentBids"
+@using Radzen
+@using Radzen.Blazor
+@using StowellCoApp.DTO
+@using StowellCoApp.Services
+@inject NavigationManager navigationManager
+<PageTitle>Current Opportunities</PageTitle>
+
+<div class="card-header d-flex justify-content-between align-items-center">
+    <h3 class="m-0">Current Opportunities</h3>
+
+    <div class="doclibrary">
+        <a href="/BidsDocManagement/Main" target="_blank" style="color:#FE866D !important;">
+            <i class="fa fa-folder me-1"></i>
+            Opportunities Document Library
+        </a>
+    </div>
+</div>
+<hr />
+<div class="dashboard-container">
+    <div class="gridcard">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <!-- Left: Search box with icon -->
+
+            <div style="display: flex; align-items: center; /* gap: 8px; */">
+                <RadzenIcon Icon="search"
+                            style="
+                    cursor: pointer;
+                    background-color: #000;
+                    padding: 8px;
+                    border-radius: 4px;
+                    color: #fff;
+                    font-size: 18px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    height: 36px;
+                    width: 36px;
+border-bottom-right-radius:0;
+border-top-right-radius:0
+                " />
+                <RadzenTextBox @bind-Value="searchTerm"
+                               Placeholder="Search Opportunities..."
+                               Style="width: 300px; height: 36px; font-size: 14px;" @oninput="OnInputChanged" />
+                <button class="btn btn-primary col-lg-4 mx-2" type="button" @onclick="() => navigationManager.NavigateTo(newBidUrl)">New Opportunity</button>
+                
+            </div>
+            <div style="display:flex; align-items:center; gap:5px;">
+                <span>Show</span>
+                <RadzenDropDown @bind-Value="selectedPageSize" Data="pageSizes" Style="width:80px;" Change="OnPageSizeChangedInput" />
+                <span>entries</span>
+            </div>
+
+        </div>
+
+
+
+
+        <RadzenDataGrid @ref="grid"
+                        Data="@filteredBids"
+                        TItem="Bids"
+                        AllowPaging="true" PageSize="@pageSize" AllowSorting="true" AllowFiltering="true"
+                        ShowPagingSummary="true" Count="@(filteredBids != null ? filteredBids.Count() : 0)">
+            <Columns>
+                <!-- Hyperlink column -->
+                <RadzenDataGridColumn TItem="Bids" Title="Opportunity ID">
+                    <Template Context="bid">
+                        <a href="@($"/Bids/BidOverview/{bid.BidId}/current")">
+                            @bid.BidId
+                        </a>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Bids" Property="BidName" Title="Opportunity Name" />
+                <RadzenDataGridColumn TItem="Bids" Property="Bidder" Title="Opportunity Manager" />
+                <RadzenDataGridColumn TItem="Bids" Property="Status" Title="Status" />
+
+            </Columns>
+        </RadzenDataGrid>
+
+    </div>
+</div>
+@code {
+    [Inject]
+    public IBidService BidService { get; set; }
+    [Inject]
+    private ILogger<CurrentBids> logger { get; set; } = default!;
+    private RadzenDataGrid<Bids> grid;
+    private IEnumerable<Bids> filteredBids;
+    private string searchTerm = string.Empty;
+    private IEnumerable<Bids> bids;
+    private IEnumerable<Bids> pagedbids;
+    private CancellationTokenSource cts = new();
+    RadzenDataGrid<Bids> dataGrid;
+    IEnumerable<int> pageSizeOptions = new int[] { 10, 20, 50 };
+    IEnumerable<Bids> orderDetails;
+    bool showPagerSummary = true;
+    private string newBidUrl = "/Bids/NewBid";
+
+    async Task FirstPage()
+    {
+        await dataGrid.FirstPage();
+    }
+    async Task TenthPage()
+    {
+        await dataGrid.GoToPage(9);
+    }
+    async Task LastPage()
+    {
+        await dataGrid.LastPage();
+    }
+    void OnPage(PagerEventArgs args)
+    {
+        //
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) // important to avoid infinite loops
+        {
+            try
+            {
+                bids = await BidService.GetCurrentBids();
+                logger.LogInformation("filteredBids start");
+                filteredBids = bids;
+                orderDetails = bids;
+                logger.LogInformation($"filteredBids end{filteredBids.Count()}");
+                StateHasChanged(); // optional, usually not needed in firstRender
+            }
+            catch (Exception ex)
+            {
+                logger.LogInformation($"Error loading bids: {ex.Message}");
+                Console.WriteLine($"Error loading bids: {ex.Message}");
+            }
+        }
+    }
+    private async Task OnInputChanged(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        searchTerm = args.Value?.ToString() ?? string.Empty;
+
+        // Cancel previous debounce
+        cts.Cancel();
+        cts = new CancellationTokenSource();
+        var token = cts.Token;
+
+        try
+        {
+            await Task.Delay(300, token); // debounce 300ms
+
+            if (token.IsCancellationRequested) return;
+
+            Filterbids();
+        }
+        catch (TaskCanceledException)
+        {
+            // ignore
+        }
+    }
+
+    private void Filterbids()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredBids = bids;
+        }
+        else
+        {
+            filteredBids = bids.Where(j =>
+                (Convert.ToString(j.BidId)?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (j.BidName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (j.Bidder?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (j.BidManager?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (j.Status?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+            );
+        }
+
+        grid.Reload();
+    }
+    private string selectedPageSize = "10"; // default
+    private string[] pageSizes = new string[] { "10", "20", "50", "All" };
+    private int pageSize = 10;
+    private int currentPage = 0;
+    private void OnPageSizeChanged(int newPageSize)
+    {
+        pageSize = newPageSize;
+        currentPage = 0; // reset to first page
+        ApplyPaging();
+    }
+    private void OnPageSizeChangedInput(object value)
+    {
+        selectedPageSize = value.ToString();
+
+        if (selectedPageSize == "All")
+        {
+            // Show all records
+            pageSize = filteredBids?.Count() ?? 0;
+        }
+        else
+        {
+            pageSize = Convert.ToInt32(selectedPageSize);
+        }
+
+        currentPage = 0;
+
+        // Refresh the grid and pager
+        grid.GoToPage(0);
+        grid.Reload();
+    }
+
+    private void ApplyPaging()
+    {
+        if (pageSize == 0)
+        {
+            pagedbids = filteredBids;
+        }
+        else
+        {
+            pagedbids = filteredBids
+                .Skip(currentPage * pageSize)
+                .Take(pageSize);
+        }
+        grid?.Reload();
+    }
+    private async Task OnLoadData(LoadDataArgs args)
+    {
+        // Handle search
+        filteredBids = string.IsNullOrWhiteSpace(searchTerm)
+            ? bids
+            : bids.Where(j =>
+                (Convert.ToString(j.BidId)?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (j.BidName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (j.Bidder?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (j.BidManager?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (j.Status?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false));
+
+        // Handle paging
+        pagedbids = pageSize == 0
+            ? filteredBids
+            : filteredBids.Skip(args.Skip ?? 0).Take(args.Top ?? pageSize);
+
+        StateHasChanged();
+    }
+
+
+    private void OnPageChanged(int newPageIndex)
+    {
+        currentPage = newPageIndex;
+        ApplyPaging();
+    }
+}
+<style>
+    /* Put SUMMARY on its own line */
+    .rz-pager-summary {
+        display: block;
+        width: 100%;
+        margin-bottom: 6px;
+    }
+
+    /* Make the TWO pager sections share one row */
+    .rz-pager .rz-pager-pages {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+    }
+
+        /* Prevent Radzen from forcing internal wrapping */
+        .rz-pager .rz-paginator,
+        .rz-pager .rz-pager-pages > div {
+            white-space: nowrap;
+            flex-wrap: nowrap !important;
+        }
+
+    .rz-grid-table thead th {
+        background-color: var(--rz-series-1);
+    }
+
+        .rz-grid-table thead th .rz-column-title, .rz-grid-filter-icon {
+            color: #fff;
+        }
+
+    .btn-primary{
+        background-color:#000 !important;
+        border-color:#000 !important;
+    }
+</style>

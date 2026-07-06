@@ -1,0 +1,953 @@
+﻿@page "/Accounting/AddForm/{JobId:int}"
+@using Radzen
+@using Radzen.Blazor
+@using Radzen.Blazor.Rendering
+@using StowellCoApp.DTO
+@using StowellCoApp.Components.Pages.Estimation
+<h3>Add Form</h3>
+<hr />
+<PageTitle>Add Form</PageTitle>
+@inherits AddFormBase
+@if (isLoading)
+{
+    <div class="custom-busy-indicator"></div>
+}
+<div class="wrapper wrapper-content">
+    <div class="row white-bg p-10 my-3">
+        <div class="col-lg-12">
+            <form method="get">
+                
+                <div class="hr-line-dashed"></div>
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <div class="form-group row">
+                            <label class="col-sm-1 col-form-label">Bidder</label>
+                            <div class="col-sm-3">
+                                <input class="form-control" placeholder="Enter bidder" type="hidden" disabled="disabled" id="txtBidder" >
+                              @*   <input class="form-control" placeholder="Enter bidder" type="text" disabled="disabled" id="txtBidderDisplay" value="@UserName"> *@
+                                <input class="form-control" @bind="txtBidderDisplay" disabled="disabled" />
+                            </div><label class="col-sm-1 col-form-label">Job Phase</label>
+                            <div class="col-sm-3">
+                               @*  <select class="form-control" id="ddlJobPhase">
+                                    <option>Select Job Phase</option>
+                                    <option>RFI</option>
+                                    <option>Estimate</option>
+                                    <option>Bid</option>
+                                    <option>Project</option>
+                                </select> *@
+                                <RadzenDropDown TValue="string"
+                                                Data="@jobPhases"
+                                                @bind-Value="selectedJobPhase"
+                                                Placeholder="Select Job Phase"
+                                                AllowClear="true"
+                                                Required="true"
+                                                RequiredText="Job Phase is required"
+                                                Style="width:100%" />
+                            </div><label class="col-sm-1 col-form-label">Bid Status</label>
+                            <div class="col-sm-3">
+                               @*  <select class="form-control" id="ddlBidStatus">
+                                    <option value="">Select status</option>
+                                    <option value="Open Bid">Open Bid</option>
+                                    <option value="Won">Won</option>
+                                    <option value="Lost">Lost</option>
+                                    <option value="Pending">Pending</option>
+                                </select> *@
+                                <RadzenDropDown TValue="string"
+                                                Data="@bidStatuses"
+                                                @bind-Value="selectedBidStatus"
+                                                Placeholder="Select status"
+                                                AllowClear="true"
+                                                Style="width:100%" />
+                            </div>
+                        </div>
+                        <div class="form-group row ">
+                            <label class="col-sm-1 col-form-label">Project Number</label>
+                            <div class="col-sm-3">
+                                @* <input class="form-control" placeholder="Enter project number" value="@BidNumber"
+                                       required type="text" id="txtJobId" disabled="disabled"> *@
+                                <input class="form-control" @bind="txtJobId" disabled="disabled" />
+                            </div><label class="col-sm-1 col-form-label">Division</label>
+                            <div class="col-sm-3">
+                                <select class="form-control" @bind="selectedDivision">
+                                    <option value="selectDivision">Select Division</option>
+                                    <option value="BlockConcreteGroupId">BlockConcrete</option>
+                                    <option value="a539add2-52ab-4545-acb6-5d23c703403f">Jacksonville</option>
+                                    <option value="0a6836b5-aa1f-4c7e-b1e9-77be7b5a85d1">Naples</option>
+                                    <option value="3d76dbfb-27c8-4c95-836e-e5caed001a0b">Orlando</option>
+                                    <option value="b222364a-0ca8-4415-ac9e-36ba0bfcabe1">Tampa</option>
+                                    <option value="1446eb90-6189-47cf-b242-b6f84f9f1d56">Texas</option>
+                                </select>
+                            </div><label class="col-sm-1 col-form-label">Department</label>
+                            <div class="col-sm-3">
+                               @*  <select id="ddlDepartment" class="form-control">
+                                    <option value="">Select department</option>
+                                    <option value="Drywall">Drywall</option>
+                                    <option value="Concrete">Block / Concrete </option>
+                                </select> *@
+                                <RadzenDropDown Data="@departments"
+                                                @bind-Value="selectedDepartment"
+                                                Placeholder="Select department"
+                                                AllowClear="true"
+                                                Style="width:100%"
+                                                Change="@OnDepartmentChange" />
+                            </div>
+                        </div>
+                        <div class="form-group row ">
+                            <label class="col-sm-1 col-form-label">Job Type</label>
+                            <div class="col-sm-3">
+                               @*  <select id="ddlJobType" class="form-control">
+                                </select> *@
+                                <RadzenDropDown Data="@jobTypes"
+                                                @bind-Value="selectedJobType"
+                                                Placeholder="Select job type"
+                                                Style="width:100%"
+                                                Disabled="@(jobTypes.Count == 0)" />
+                            </div><label class="col-sm-1 col-form-label">Job Name</label>
+                            <div class="col-sm-3">
+                                @* <input class="form-control" placeholder="Enter job name" id="txtJobName" type="text"> *@
+                                <input class="form-control" @bind="txtJobName" placeholder="Enter job name" />
+                            </div><label class="col-sm-1 col-form-label">Short Name</label>
+                            <div class="col-sm-3">
+                               @*  <input class="form-control" placeholder="Enter short name"
+                                       type="text" id="txtJobShortName"> *@
+                                <input class="form-control" @bind="txtJobShortName" placeholder="Enter short name" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-8">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h2>Bids</h2>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <RadzenButton @ref="button" Text="Add Bid"
+                                                      Click="@(args => popup.ToggleAsync(button.Element))" class="btn btn-primary btn-sm" />
+                                    </div>
+                                     <Popup @ref="popup" Lazy="true" class="my-popup">
+                                        <div role="dialog" aria-modal="true" class="fade modal show" tabindex="-1" id="addBids" style="display:block">
+                                            <div class="modal-dialog modal-lg">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <div class="modal-title h4">Add Bids</div>
+                                                        <button type="button" class="close" @onclick="CloseClick" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="table-responsive">
+                                                            <table class="table table-bordered">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>Bid Date</th>
+                                                                        <th>Bid Amount</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                 @*    <tr>
+                                                                        <td> <InputDate @bind-Value="BidDate" class="form-control" /></td>
+                                                                        <td>
+                                                                            <InputNumber @bind-Value="BidAmount" class="form-control" />
+                                                                        </td>
+                                                                    </tr> *@
+                                                                    <tr>
+                                                                        <td>
+                                                                            <RadzenDatePicker @bind-Value="BidDate"
+                                                                                              DateFormat="MM/dd/yyyy" Culture="@UsCulture" />
+                                                                        </td>
+                                                                        <td>
+                                                                            <RadzenNumeric @bind-Value="BidAmount"
+                                                                                           ShowUpDown="false"
+                                                                                           TValue="decimal?"
+                                                                                           Format="C2"
+                                                                                           Culture="@UsCulture" />
+                                                                            @* <InputNumber @bind-Value="BidAmount" class="form-control" /> *@
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <RadzenButton Text="Close" class="btn btn-secondary btn-sm"
+                                                                      Click="CloseClick" Style="margin-right:5px"/>
+                                                        <RadzenButton Text=" Save Changes" class="btn btn-primary btn-sm"
+                                                                      Click="SaveBidsClick" />
+                                                       @*  <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="CloseClick">Close</button> *@
+                                                      @*   <button type="button" class="btn btn-primary" id="btnSaveBid" Click="SaveBidsClick">
+                                                            Save Changes
+                                                        </button> *@
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Popup>
+                                </div>
+                                <div class="hr-line-dashed"></div>
+
+                                <RadzenDataGrid @ref="_bidAmountGrid"
+                                                Data="@_bidAmountRecords"
+                                                TItem="StowellCoApp.Models.BidAmount"
+                                                ColumnWidth="200px">
+
+                                    <Columns>
+                                        <RadzenDataGridColumn TItem="StowellCoApp.Models.BidAmount" Title="Action" Filterable="false" Sortable="false">
+                                            <Template Context="data">
+                                                <RadzenButton Icon="delete"
+                                                              ButtonStyle="ButtonStyle.Danger"
+                                                              Size="ButtonSize.Small"
+                                                              Click="@(() => DeleteBidAmountRow(data))" />
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn TItem="StowellCoApp.Models.BidAmount" Title="Bid Date">
+                                            <Template Context="data">
+                                                @data.BidDate?.ToString("MM/dd/yyyy", UsCulture)
+                                            </Template>
+                                        </RadzenDataGridColumn>
+
+                                        <RadzenDataGridColumn TItem="StowellCoApp.Models.BidAmount"
+                                                              Property="BidAmount1"
+                                                              Title="Bid Amount" FormatString="{0:C2}" />
+                                    </Columns>
+                                </RadzenDataGrid>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Contract Number</label>
+                            <div class="col-sm-2">
+                              @*   <input class="form-control" placeholder="Enter contract number"
+                                       type="number" id="txtContractNumber"> *@
+                                <input class="form-control" @bind="txtContractNumber" placeholder="Enter contract number" />
+                            </div><label class="col-sm-2 col-form-label">Contract Date</label>
+                            <div class="col-sm-2">
+                                @* <input class="form-control" type="date" data-date-format="MM/DD/YYYY" @bind="txtContractDate"> *@
+                                <RadzenDatePicker @bind-Value="txtContractDate"
+                                                  DateFormat="MM/dd/yyyy" Culture="@UsCulture" />
+                                </div><label class="col-sm-2 col-form-label">Contract Amount</label>
+                            <div class="col-sm-2">
+                              @*   <input class="form-control" placeholder="Enter contract amount"
+                                       type="text" id="txtContractAmount" data-inputmask="'mask': '$ 999,999,999.99'"> *@
+                                <RadzenNumeric TValue="decimal?"
+                                               @bind-Value="txtContractAmount"
+                                               Placeholder="Enter contract amount"
+                                               Format="$#,##0.00"
+                                               Min="0"
+                                               Step="0.01"
+                                               Style="width:100%" ShowUpDown="false" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Est Start Date</label>
+                            <div class="col-sm-4">
+                                <RadzenDatePicker @bind-Value="txtEstStartDate"
+                                                  DateFormat="MM/dd/yyyy" Culture="@UsCulture" />
+                              @*   <input class="form-control" placeholder="Enter estimated start date"
+                                       type="date" data-date-format="MM/DD/YYYY" @bind="txtEstStartDate"> *@
+                            </div><label class="col-sm-2 col-form-label">Est Completion Date</label>
+                            <div class="col-sm-4">
+                                <RadzenDatePicker @bind-Value="txtEstCompletionDate"
+                                                  DateFormat="MM/dd/yyyy" Culture="@UsCulture" />
+                               @*  <input class="form-control"
+                                       placeholder="Enter estimated completion date" type="date" data-date-format="MM/DD/YYYY" @bind="txtEstCompletionDate"> *@
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Additional Phases</label>
+                            <div class="col-sm-2">
+                            @*     <button class="btn btn-primary btn-sm" id="btnAddPhases" type="button">
+                                    Add Phases
+                                </button> *@
+                                <RadzenButton @ref="button" Text=" Add Phases" class="btn btn-primary btn-sm"
+                                              Click="@(args => Phasespopup.ToggleAsync(button.Element))" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-8">
+                                <RadzenDataGrid @ref="_bidPhaseGrid"
+                                                Data="@_bidphaseRecords"
+                                                TItem="StowellCoApp.Models.BidPhase"
+                                                ColumnWidth="200px">
+
+                                    <Columns>
+                                        <RadzenDataGridColumn TItem="StowellCoApp.Models.BidPhase" Title="Action" Filterable="false" Sortable="false">
+                                            <Template Context="data">
+                                                <RadzenButton Icon="delete"
+                                                              ButtonStyle="ButtonStyle.Danger"
+                                                              Size="ButtonSize.Small"
+                                                              Click="@(() => DeleteBidPhaseRow(data))" />
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn TItem="StowellCoApp.Models.BidPhase" Title="Phase">
+                                            <Template Context="data">
+                                                @data.Phase
+                                            </Template>
+                                        </RadzenDataGridColumn>
+
+                                        <RadzenDataGridColumn TItem="StowellCoApp.Models.BidPhase"
+                                                              Property="Description"
+                                                              Title="Description" />
+                                    </Columns>
+                                </RadzenDataGrid>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-6">
+                                <h2>Project Location</h2>
+                                <div class="hr-line-dashed"></div>
+                                <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Jobsite</label>
+                                    <div class="col-sm-6">
+                                      @*   <input class="form-control" placeholder="Enter jobsite"
+                                               type="text" @bind="txtJobSite"> *@
+                                        <input class="form-control" @bind="txtJobSite" placeholder="Enter jobsite" />
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-sm-3  col-form-label">Address</label>
+                                    <div class="col-sm-6">
+                                        @* <input class="form-control" placeholder="Enter address"
+                                               type="text" id="txtJobSiteAddress"> *@
+                                        <input class="form-control" @bind="txtJobSiteAddress" placeholder="Enter address" />
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-sm-3  col-form-label">Address 2</label>
+                                    <div class="col-sm-6">
+                                      @*   <input class="form-control" placeholder="Enter address 2"
+                                               type="text" id="txtJobSiteAddress2"> *@
+                                        <input class="form-control" @bind="txtJobSiteAddress2" placeholder="Enter address 2" />
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-sm-3  col-form-label">City</label>
+                                    <div class="col-sm-6">
+                                        @* <input class="form-control" placeholder="Enter city"
+                                               type="text" id="txtJobSiteCity"> *@
+                                        <input class="form-control" @bind="txtJobSiteCity" placeholder="Enter city" />
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-sm-3  col-form-label">State</label>
+                                    <div class="col-sm-6">
+                                        @* <input class="form-control" placeholder="Enter state"
+                                               type="text" id="txtJobSiteState"> *@
+                                        <input class="form-control" @bind="txtJobSiteState" placeholder="Enter state" />
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-sm-3  col-form-label">
+                                        Sales Tax
+                                        District
+                                    </label>
+                                    <div class="col-sm-6">
+                                        @* <input class="form-control"
+                                               placeholder="Enter sales tax district" type="text" id="txtJobSiteSalesTaxDistrict"> *@
+                                        <input class="form-control" @bind="txtJobSiteSalesTaxDistrict" placeholder="Enter sales tax district" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <h2 class="border-bottom pb-2">General Contractor Information</h2>
+                                <div class="form-group row mt-3">
+                                    <label class="col-sm-3 col-form-label">Client</label>
+                                    <div class="col-sm-9">
+                                       @*  <select class="form-control" id="ddlClient">
+                                        </select> *@
+                                        <RadzenDropDown TValue="int?"
+                                                        Data="@_contractClientdroplist"
+                                                        TextProperty="Name"
+                                                        ValueProperty="Id"
+                                                        Placeholder="Select Client"
+                                                        Style="width:100%"
+                                                        @bind-Value="@selectedClientId" 
+                                                        Change="@(async (args) => await OnClientChange(selectedClientId))" />
+                                    </div>
+                                </div>
+                                <div class="form-group row mt-3">
+                                    <label class="col-sm-3 col-form-label">Address</label>
+                                    <div class="col-sm-9">
+                                      @*   <input class="form-control" placeholder="Address line 1"
+                                               type="text" id="txtClientAddress"> *@
+                                        <input class="form-control" placeholder="Address line 1"
+                                               type="text" @bind="selectedClient.Address1">
+                                    </div>
+                                </div>
+                                <div class="form-group row mt-3">
+                                    <label class="col-sm-3 col-form-label">
+                                        Address
+                                        2
+                                    </label>
+                                    <div class="col-sm-9">
+                                       @*  <input class="form-control" placeholder="Address line 2"
+                                               type="text" id="txtClientAddress2"> *@
+                                        <input class="form-control" placeholder="Address line 2"
+                                               type="text" @bind="selectedClient.Address2">
+                                    </div>
+                                </div>
+                                <div class="form-group row mt-3">
+                                    <label class="col-sm-3 col-form-label">City</label>
+                                    <div class="col-sm-9">
+                                       @*  <input class="form-control" placeholder="Enter city"
+                                               type="text" id="txtClientCity"> *@
+                                        <input class="form-control" placeholder="Enter city"
+                                               type="text" @bind="selectedClient.City">
+                                    </div>
+                                </div>
+                                <div class="form-group row mt-3">
+                                    <label class="col-sm-3 col-form-label">State</label>
+                                    <div class="col-sm-5">
+                                       @*  <input class="form-control" placeholder="Enter state"
+                                               type="text" id="txtClientState"> *@
+                                        <input class="form-control" placeholder="Enter state"
+                                               type="text" @bind="selectedClient.State">
+                                    </div><label class="col-sm-1 col-form-label">Zip</label>
+                                    <div class="col-sm-3">
+                                        @* <input class="form-control" placeholder="Enter zip"
+                                               type="number" maxlength="5" id="txtClientZip"> *@
+                                        <input class="form-control" placeholder="Enter zip"
+                                               type="number" maxlength="5" @bind="selectedClient.ZipCode">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h2>Project Information</h2>
+                        <div class="hr-line-dashed"></div>
+                        <div class="col-sm-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3  col-form-label">
+                                    Insurance
+                                    Type
+                                </label>
+                                <div class="col-sm-6">
+                                    <select class="form-control" @bind="selectedInsuranceType">
+                                        <option value="0">Select insurance type</option>
+                                        <option value="1">OCIP</option>
+                                        <option value="2">CCIP</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-3  col-form-label">Bonded</label>
+                                <div class="col-sm-6">
+                                    <select class="form-control" @bind="selectedBonded">
+                                        <option value="0">Select</option>
+                                        <option value="1">Yes</option>
+                                        <option value="2">No</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-3  col-form-label">Tax Exempt</label>
+                                <div class="col-sm-6">
+                                    <select class="form-control" @bind="selectedTaxExempt">
+                                        <option value="0">Select</option>
+                                        <option value="1">Yes</option>
+                                        <option value="2">No</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-3  col-form-label">
+                                    Invoice
+                                    Submittal
+                                </label>
+                                <div class="col-sm-6">
+                                    <select class="form-control" @bind="selectedInvoiceSubmittal">
+                                        <option value="0">Select</option>
+                                        <option value="1">Email</option>
+                                        <option value="2">Portal</option>
+                                        <option value="3">Mail</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group row">
+                                <label class="col-sm-3  col-form-label">
+                                    Certified
+                                    Payroll
+                                </label>
+                                <div class="col-sm-6">
+                                    <select class="form-control" @bind="selectedCertifiedPayroll">
+                                        <option value="0">Select</option>
+                                        <option value="1">Yes</option>
+                                        <option value="2">No</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-3  col-form-label">
+                                    Net Terms
+                                    Date
+                                </label>
+                                <div class="col-sm-6">
+                                   @*  <input class="form-control" type="date" id="txtNetTermsDate" data-date-format="MM/DD/YYYY"> *@
+                                    <RadzenDatePicker TValue="DateTime?"
+                                                      @bind-Value="txtNetTermsDate"
+                                                      DateFormat="MM/dd/yyyy"
+                                                      Placeholder="Select date"
+                                                      Style="width:100%" Culture="@UsCulture" />
+                                    </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-3  col-form-label">Retainage %</label>
+                                <div class="col-sm-6">
+                                    @* <input class="form-control"
+                                           placeholder="Enter retainage percentage" type="number" id="txtRetainage"> *@
+                                    <RadzenNumeric TValue="decimal?"
+                                                   @bind-Value="txtRetainage"
+                                                   Placeholder="Enter retainage percentage"
+                                                   Min="0"
+                                                   Max="100"
+                                                   Step="0.01"
+                                                   Style="width:100%" ShowUpDown="false"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h2>Project Resources</h2>
+                        <div class="hr-line-dashed"></div>
+                        <div class="form-group row">
+                            <div class="col-sm-8">
+                                <div style="margin-bottom:10px;">
+                                <RadzenButton @ref="button" Text="Add Employee" class="btn btn-primary btn-sm"
+                                              Click="@(args => Employeepopup.ToggleAsync(button.Element))" />
+                                </div>
+                                <div>
+                                <RadzenDataGrid @ref="_bidEmployeeGrid"
+                                                Data="@_bidEmployeeRecords"
+                                                TItem="StowellCoApp.Models.BidEmployee"
+                                                ColumnWidth="200px">
+
+                                    <Columns>
+
+                                        <RadzenDataGridColumn TItem="StowellCoApp.Models.BidEmployee" Title="Action" Filterable="false" Sortable="false">
+                                            <Template Context="data">
+                                                <RadzenButton Icon="delete"
+                                                              ButtonStyle="ButtonStyle.Danger"
+                                                              Size="ButtonSize.Small"
+                                                              Click="@(() => DeleteEmployeeRow(data))" />
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn TItem="StowellCoApp.Models.BidEmployee" Title="Role">
+                                            <Template Context="data">
+                                                @data.Role
+                                            </Template>
+                                        </RadzenDataGridColumn>
+
+                                        <RadzenDataGridColumn TItem="StowellCoApp.Models.BidEmployee"
+                                                              Property="Employee"
+                                                              Title="Employee" />
+                                    </Columns>
+                                </RadzenDataGrid>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-sm-4"></div>
+                            <div class="col-sm-4 text-center">
+                               @*  <button class="rz-button rz-button-primary" @onclick="SubmitBidAsync" disabled="@isProcessing">
+                                    @if (isProcessing)
+                                    {
+                                        <span class="rz-icon rz-spin rz-i-spinner" style="margin-right:5px;"></span>
+                                        <span>Processing...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Create/Update Job</span>
+                                    }
+                                </button> *@
+                                <button class="btn btn-primary" type="button" id="btnSubmitBid" @onclick="SubmitBidAsync" disabled="@isLoading">Create/Update Job</button>
+                                <button class="btn btn-danger" type="button" id="btnReject" @onclick="RejectBidAsync">Reject</button>
+                            </div>
+                            <div class="col-sm-4"></div>
+                        </div>
+                        <br /><br />
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+   <Popup @ref="Phasespopup" Lazy="true" class="my-popup">
+    <div role="dialog" aria-modal="true" class="fade modal show" tabindex="-1" id="addPhases" style="display:block">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title h4">Additional Phases</div>
+                <button type="button" class="close" @onclick="ClosephaseClick" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Phase</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                   @*  <select class="form-control" id="phaseDropdown">
+                                    </select> *@
+                                        <RadzenDropDown TValue="string"
+                                                        Data="@_phases"
+                                                        TextProperty="PhaseName"
+                                                        ValueProperty="PhaseNum"
+                                                        Placeholder="None"
+                                                        Style="width:100%"
+                                                        @bind-Value="@selectedPhaseNum" 
+                                                        />
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                    <RadzenButton Text="Close" class="btn btn-secondary" style="margin-right:5px;"
+                                  Click="ClosephaseClick" />
+                    <RadzenButton Text=" Save Changes" class="btn btn-primary" 
+                                  Click="SavePhaseClick" />
+            </div>
+        </div>
+    </div>
+</div>
+</Popup>
+<div role="dialog" aria-modal="true" class="fade modal show" tabindex="-1" id="addBids">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title h4">Add Bids</div>
+                <button type="button" class="close" @onclick="CloseEmployeeClick" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Bid Date</th>
+                                <th>Bid Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                @* <td class="text-center">
+                                    <div class="d-flex justify-content-around">
+                                        <button type="button"
+                                                class="p-0 text-success btn btn-link">
+                                            <svg stroke="currentColor"
+                                                 fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="1em"
+                                                 width="1em" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z">
+                                                </path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td> *@
+                                <td><input placeholder="Enter Bid Date" class="form-control" type="date" value="" id="txtBidDate"></td>
+                                <td>
+                                    <input placeholder="Enter Bid Amount" class="form-control" type="number" value="" id="txtBidAmount">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" style="margin-right:5px">Close</button>
+                <button type="button" class="btn btn-primary" id="btnSaveBid">
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<Popup @ref="Employeepopup" Lazy="true" class="my-popup">
+    <div role="dialog" aria-modal="true" class="fade modal show" tabindex="-1" id="addResources" style="display:block">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title h4">Add Employee</div>
+                <button type="button" class="close" @onclick="CloseEmployeeClick" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Role</th>
+                                <th>Employee</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                   @*  <select class="form-control" id="ddlEmpRole">
+                                        <option value="Sr. PM">Sr. PM</option>
+                                        <option value="PM">PM</option>
+                                    </select> *@
+                                        <RadzenDropDown TValue="string"
+                                                        Data="@empRoles"
+                                                        @bind-Value="@selectedEmpRole"
+                                                        Style="width:100%" />
+                                </td>
+                                <td>
+
+                                     @*    <select class="form-control" id="ddlEmp">  </select> *@
+
+                                        <RadzenDropDown TValue="int?"
+                                                        Data="@_contractClientRecords"
+                                                        TextProperty="Name"
+                                                        ValueProperty="Id"
+                                                        Placeholder="None"
+                                                        @bind-Value="@selectedEmployeeId"  Style="width:100%"/>
+
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+               @*  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="btnSaveEmployee">
+                    Save Changes
+                </button> *@
+                    <RadzenButton Text="Close" class="btn btn-secondary" Style="margin-right:5px"
+                                  Click="CloseEmployeeClick" />
+                    <RadzenButton Text=" Save Changes" class="btn btn-primary"
+                                  Click="SaveEmployeeClick" />
+            </div>
+        </div>
+    </div>
+</div>
+</Popup>
+<div id="loader" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:9999; text-align:center; padding-top:20%;">
+    <img src="~/img/loading.gif" alt="Loading..." />
+</div>
+<style>
+    .custom-busy-indicator {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.3); /* semi-transparent overlay */
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .custom-busy-indicator::after {
+            content: "";
+            width: 50px; /* size of spinner */
+            height: 50px;
+            background-image: url('/img/loading.gif');
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+    .row {
+        margin: 10px 0px;
+    }
+
+    .mod-high-contrast:not(.mod-skin-dark) .btn-secondary {
+        color: #FFF !important;
+        text-shadow: none !important;
+    }
+
+    .btn-primary {
+        color: #fff !important;
+        background-color: var(--rz-series-1) !important;
+        border-color: var(--rz-series-1) !important;
+        font-weight: 600 !important;
+        padding: 6px 14px !important;
+        border-radius: 4px !important;
+    }
+
+    .btn-secondary {
+        color: #fff !important;
+        background-color: gray !important;
+        border-color: gray !important;
+        font-weight: 600 !important;
+        padding: 6px 14px !important;
+        border-radius: 4px !important;
+    }
+
+   .my-popup {
+    display: none;
+    position: fixed !important; /* Full-page overlay positioning */
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important; /* Perfect center */
+    
+    overflow-y: auto;
+    height: 360px;
+    width: 600px;
+
+    border: var(--rz-panel-border);
+    background-color: var(--rz-panel-background-color);
+    box-shadow: var(--rz-panel-shadow);
+    border-radius: var(--rz-border-radius);
+}
+
+    /* .rz-notification {
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        right: auto !important;
+    }
+ */
+   /*  .radzen-notification {
+        position: fixed !important;
+        top: 20px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        right: auto !important;
+        z-index: 99999 !important;
+    } */
+    .radzen-notification {
+        position: fixed !important;
+        top: 10px !important;
+        left: 10px !important;
+        right: auto !important;
+        transform: none !important;
+        z-index: 999999 !important;
+    }
+
+    /* Style for the autocomplete input field */
+    .radzen-autocomplete input {
+        width: 100%;
+        padding: 10px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    /* Style for the dropdown list */
+    .radzen-autocomplete .rz-dropdown {
+        border: 1px solid #ccc;
+        background-color: #fff;
+        border-radius: 4px;
+        max-height: 200px; /* Set a max height to avoid long lists */
+        overflow-y: auto; /* Scrollable if the list exceeds max height */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Highlight the item when hovering */
+    .radzen-autocomplete .rz-list-item:hover {
+        background-color: #f0f0f0;
+    }
+
+    /* Highlight the selected item */
+    .radzen-autocomplete .rz-list-item-selected {
+        background-color: #007bff;
+        color: white;
+    }
+
+    /* Focus styling */
+    .radzen-autocomplete input:focus {
+        border-color: #007bff;
+        outline: none;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    /* Clear button styling */
+    .radzen-autocomplete .rz-clear-button {
+        color: #007bff;
+        font-size: 14px;
+    }
+
+        .radzen-autocomplete .rz-clear-button:hover {
+            color: #0056b3;
+        }
+
+    /* Style for individual dropdown items */
+    .radzen-autocomplete .rz-list-item {
+        padding: 8px;
+        font-size: 14px;
+        color: #333;
+    }
+
+    /* Style for the empty/no results message */
+    .radzen-autocomplete .rz-no-results {
+        padding: 8px;
+        color: #999;
+    }
+    /* Gray overlay */
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(128, 128, 128, 0.6); /* gray overlay */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    /* CSS Spinner */
+    .spinner {
+        border: 8px solid #e0e0e0; /* Light border */
+        border-top: 8px solid #007bff; /* Blue spinning section */
+        border-radius: 50%;
+        width: 70px;
+        height: 70px;
+        animation: spin 1s linear infinite;
+    }
+
+    /* Spinner animation */
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .saving-text {
+        margin-top: 15px;
+        font-size: 1.4rem;
+        color: white;
+        font-weight: bold;
+    }
+
+    .rz-fileupload-choose:not(.rz-state-disabled) {
+        background-color: transparent;
+        color: black;
+    }
+
+    .rz-button.rz-primary.rz-shade-default {
+        background-color: var(--rz-series-1);
+        color: var(--rz-on-primary);
+        padding: 5px 10px;
+    }
+
+    .btn-primary, .btn-danger {
+        padding: 7px 15px;
+    }
+    .btn-primary
+    {
+        background-color:#000 !important;
+        border-color:#000 !important;
+    }
+
+    .btn-danger{
+        background-color: gray !important;
+        border-color: gray !important;
+    }
+</style>
+
+
+
+

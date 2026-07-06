@@ -1,0 +1,156 @@
+﻿@using System.Globalization
+@using Radzen
+@using Radzen.Blazor
+@using StowellCoApp.DTO
+@using StowellCoApp.Services
+
+@* <RadzenStack class="rz-p-0 rz-p-md-6 rz-p-lg-12">
+    *@
+    <RadzenRow>
+        <RadzenColumn Size="12">
+        <h4>Cash Collected vs Cash Paid by Job</h4>
+
+            <RadzenChart>
+                <RadzenColumnSeries Data="@cashCollected" CategoryProperty="Quarter" Title="Cash Collected" LineType="LineType.Dashed" ValueProperty="Revenue">
+                    <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                </RadzenColumnSeries>
+                <RadzenColumnSeries Data="@cashPaid" CategoryProperty="Quarter" Title="Cash Paid" ValueProperty="Revenue">
+                    <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                </RadzenColumnSeries>
+                <RadzenColumnOptions Radius="5" Width="15" />
+                <RadzenCategoryAxis Padding="10" LabelRotation="-45" />
+                <RadzenValueAxis Min="0" Formatter="@FormatAsUSD">
+                    <RadzenGridLines Visible="true" />
+                    <RadzenAxisTitle Text="Revenue in USD" />
+                </RadzenValueAxis>
+            </RadzenChart>
+        </RadzenColumn>
+
+        
+    </RadzenRow>
+@* </RadzenStack> *@
+
+@code {
+    bool showDataLabels = false;
+
+    class DataItem
+    {
+        public string Quarter { get; set; }
+        public double Revenue { get; set; }
+    }
+
+    string FormatAsUSD(object value)
+    {
+        return ((double)value).ToString("C0", CultureInfo.CreateSpecificCulture("en-US"));
+    }
+
+    List<SeriesColorRange> fillRange = new List<SeriesColorRange>()
+    {
+        new SeriesColorRange() {Min = 0, Max = 275000, Color = "red"},
+        new SeriesColorRange() {Min = 275000, Max = 324000, Color = "orange"},
+        new SeriesColorRange() {Min = 324000, Max = 10000000, Color = "#06cd06"},
+    };
+
+    DataItem[] revenue2023 = new DataItem[] {
+        new DataItem
+        {
+            Quarter = "Misc Jobs 2023",
+            Revenue = 234000
+        },
+        new DataItem
+        {
+            Quarter = "Project 801 South Power",
+            Revenue = 284000
+        },
+        new DataItem
+        {
+            Quarter = "Block F North Hotel",
+            Revenue = 274000
+        },
+        new DataItem
+        {
+                       Quarter = "The Standarad @ Austin",
+
+            Revenue = 294000
+        },
+    };
+
+    DataItem[] revenue2024 = new DataItem[] {
+        new DataItem
+        {
+           Quarter = "Misc Jobs 2023",
+            Revenue = 254000
+        },
+        new DataItem
+        {
+            Quarter = "Project 801 South Power",
+            Revenue = 324000
+        },
+        new DataItem
+        {
+            Quarter = "Block F North Hotel",
+            Revenue = 354000
+        },
+        new DataItem
+        {
+            Quarter = "The Standarad @ Austin",
+            Revenue = 394000
+        },
+
+    }; 
+    
+    private IEnumerable<ChartData> cashCollectedDatasets;
+
+    [Inject]
+    public IJobService JobService { get; set; }
+    [Inject]
+    private ILogger<LineChart> logger { get; set; } = default!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) // important to avoid infinite loops
+        {
+            try
+            {
+                //logger.LogInformation("OnAfterRenderAsync start");
+                cashCollectedDatasets = await JobService.GetCashCollectedDatasets();
+                var chart = cashCollectedDatasets.FirstOrDefault(); // since you only have one dataset
+                var dataset = chart.Datasets[0]; // first dataset
+                cashCollected = chart.Labels
+    .Select((label, index) => new DataItem
+    {
+        Quarter = label,
+        Revenue = Convert.ToDouble(dataset.Data[index])
+    })
+    .GroupBy(x => x.Quarter)           // group by label
+    .Select(g => g.First())            // keep first occurrence
+    .ToList();
+                var chart2 = cashCollectedDatasets.LastOrDefault(); // since you only have one dataset
+                var dataset2 = chart2.Datasets[0]; // first dataset
+                cashPaid = chart2.Labels
+    .Select((label, index) => new DataItem
+    {
+        Quarter = label,
+        Revenue = Convert.ToDouble(dataset.Data[index])
+    })
+    .GroupBy(x => x.Quarter)           // group by label
+    .Select(g => g.First())            // keep first occurrence
+    .ToList();
+                StateHasChanged(); // optional, usually not needed in firstRender
+            }
+            catch (Exception ex)
+            {
+                logger.LogInformation($"Error loading chartdataset: {ex.Message}");
+                Console.WriteLine($"Error loading chartdataset: {ex.Message}");
+            }
+        }
+    }
+    private List<DataItem> cashCollected = new();
+    private List<DataItem> cashPaid = new ();
+
+    protected override void OnInitialized()
+    {
+
+    }
+
+}

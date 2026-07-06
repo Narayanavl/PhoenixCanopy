@@ -1,0 +1,355 @@
+﻿@page "/JobSummary/{ProjectId:int}"
+@using ClosedXML.Excel
+@using Radzen
+@using Radzen.Blazor
+@using StowellCoApp.Components.Pages.ReportingDashboard
+@using StowellCoApp.DTO
+@using StowellCoApp.Services
+@using System.Text
+@inject IJSRuntime JS
+@inject IJobSummaryService _jobSummaryService
+@inject ILogger<JobSummary> logger
+
+<PageTitle>Job Summary Report</PageTitle>
+
+<h3>Job Summary Report</h3>
+<hr />
+@if (filteredJobs == null)
+{
+    <p>Loading...</p>
+}else{
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+    <!-- Left: Search box with icon -->
+    <div style="display: flex; align-items: center;">
+        <RadzenIcon Icon="search"
+                        style="cursor:pointer; background-color:#000; padding:8px; border-radius:4px; color:#fff; font-size:18px; height:36px; width:36px; border-bottom-right-radius:0; border-top-right-radius:0" />
+        <RadzenTextBox @bind-Value="searchTerm"
+                       Style="width: 300px; height: 36px; font-size: 14px;" @oninput="OnInputChanged" />
+    </div>
+
+    <div style="display:flex; align-items:center; gap:5px;">
+        <span>Show</span>
+        <RadzenDropDown @bind-Value="selectedPageSize" Data="pageSizes" Style="width:80px;" Change="OnPageSizeChangedInput" />
+        <span>entries</span>
+        <div style="display:flex; gap:5px;">
+                <RadzenButton Text="Copy to clipboard" Click="CopyAllToClipboard" Style="margin-right:5px;background-color:var(--rz-series-1);" />
+
+                <RadzenButton Text="Export CSV" Click="ExportCsvManual" Style="margin-right:5px;background-color:var(--rz-series-1);" />
+                <RadzenButton Text="Export PDF" Click="ExportPdf" Style="margin-right:5px;background-color:var(--rz-series-1);" />
+                <RadzenButton Text="Export Excel" Click="ExportExcel" Style="background-color:var(--rz-series-1);" />
+        </div>
+    </div>
+</div>
+
+<RadzenDataGrid @ref="grid"
+                    Data="@filteredJobs"
+                TItem="CostCodeSummaryRecord"
+                AllowPaging="true"
+                PageSize="@pageSize"
+                AllowSorting="true"
+                AllowFiltering="true"
+                ShowPagingSummary="true"
+                Count="@(filteredJobs?.Count() ?? 0)">
+    <Columns>
+        <RadzenDataGridColumn TItem="CostCodeSummaryRecord" Title="Job ID">
+            <Template Context="job">
+                <a href="#">@job.JobNumber</a>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="CostCodeSummaryRecord" Property="CostCode" Title="Cost Code" />
+        <RadzenDataGridColumn TItem="CostCodeSummaryRecord" Property="CostCodeDescription" Title="Cost Code Description" />
+            <RadzenDataGridColumn TItem="CostCodeSummaryRecord" Property="BudgetAndChanges" Title="Budget And Changes" FormatString="{0:C2}" />
+            <RadzenDataGridColumn TItem="CostCodeSummaryRecord" Property="ToDate" Title="To Date" FormatString="{0:C2}" />
+            <RadzenDataGridColumn TItem="CostCodeSummaryRecord" Property="ThisPeriod" Title="This Period" FormatString="{0:C2}" />
+            <RadzenDataGridColumn TItem="CostCodeSummaryRecord" Property="Remaining" Title="Remaining" FormatString="{0:C2}" />
+    </Columns>
+</RadzenDataGrid>
+}
+
+@code {
+    [Parameter] public int ProjectId { get; set; }
+
+    private RadzenDataGrid<CostCodeSummaryRecord> grid;
+    private IEnumerable<CostCodeSummaryRecord> jobs = Array.Empty<CostCodeSummaryRecord>();
+    private IEnumerable<CostCodeSummaryRecord> filteredJobs = Array.Empty<CostCodeSummaryRecord>();
+    private IEnumerable<CostCodeSummaryRecord> pagedJobs = Array.Empty<CostCodeSummaryRecord>();
+    private string searchTerm = string.Empty;
+    private CancellationTokenSource cts = new();
+    private string selectedPageSize = "15";
+    private string[] pageSizes = new string[] { "10", "15", "20", "50", "All" };
+    private int pageSize = 15;
+    private int currentPage = 0;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                jobs = await _jobSummaryService.GetJobCostSummaryRecords(ProjectId.ToString());
+                filteredJobs = jobs;
+                ApplyPaging();
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error loading jobs");
+            }
+        }
+    }
+    // private async Task ExportPdf()
+    // {
+    //     await JS.InvokeVoidAsync("radzenExportPdf", grid.Element, "JobSummary.pdf");
+    // }
+
+    // private async Task ExportExcel()
+    // {
+    //     await JS.InvokeVoidAsync("radzenExportExcel", grid.Element, "JobSummary.xlsx");
+    // }
+    private async Task OnInputChanged(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        searchTerm = args.Value?.ToString() ?? string.Empty;
+        cts.Cancel();
+        cts = new CancellationTokenSource();
+        var token = cts.Token;
+
+        try
+        {
+            await Task.Delay(300, token); // debounce
+            if (!token.IsCancellationRequested)
+            {
+                FilterJobs();
+            }
+        }
+        catch (TaskCanceledException) { }
+    }
+
+    private void FilterJobs()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredJobs = jobs;
+        }
+        else
+        {
+            filteredJobs = jobs.Where(j =>
+                (j.JobNumber?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (j.CostCode?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (j.CostCodeDescription?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false));
+        }
+
+        currentPage = 0;
+        ApplyPaging();
+    }
+
+    private void OnPageSizeChangedInput(object value)
+    {
+        selectedPageSize = value.ToString();
+        pageSize = selectedPageSize == "All" ? filteredJobs.Count() : Convert.ToInt32(selectedPageSize);
+        currentPage = 0;
+        ApplyPaging();
+    }
+
+    private void ApplyPaging()
+    {
+        pagedJobs = pageSize == 0
+            ? filteredJobs
+            : filteredJobs.Skip(currentPage * pageSize).Take(pageSize);
+
+        grid?.Reload();
+        StateHasChanged();
+    }
+
+    private async Task ExportCsvManual()
+    {
+        var csv = new StringBuilder();
+        csv.AppendLine("JobNumber,CostCode,CostCodeDescription,BudgetAndChanges,ToDate,ThisPeriod,Remaining");
+
+        foreach (var r in filteredJobs)
+        {
+            csv.AppendLine($"\"{r.JobNumber}\",\"{r.CostCode}\",\"{r.CostCodeDescription}\",{r.BudgetAndChanges},{r.ToDate},{r.ThisPeriod},{r.Remaining}");
+        }
+
+        var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+        var base64 = Convert.ToBase64String(bytes);
+        var url = $"data:text/csv;base64,{base64}";
+        var filename = "JobSummary.csv";
+        await JS.InvokeVoidAsync("downloadFileFromBase64", filename, base64);
+    }
+    protected async Task ExportPdf()
+    {
+        var headers = new[]
+        {
+
+           "Job Number",
+        "Cost Code",
+        "Cost Code Description",
+        "Budget & Changes",
+        "To Date",
+       "This Period",
+        "Remaining"
+    };
+
+        var rows = filteredJobs.Select(r => new[]
+        {
+        r.JobNumber.ToString(),
+             r.CostCode,
+             r.CostCodeDescription,
+             PdfReportHelper.Money(r.BudgetAndChanges),
+             PdfReportHelper.Money(r.ToDate),
+             PdfReportHelper.Money(r.ThisPeriod),
+             PdfReportHelper.Money(r.Remaining),
+        }).ToList();
+
+        byte[] pdfBytes = PdfReportHelper.BuildPdf(
+            "Job Summary Report",
+            headers,
+            rows,
+            landscape: true
+        );
+
+        var base64 = Convert.ToBase64String(pdfBytes);
+
+        await JS.InvokeVoidAsync(
+            "downloadPDFFileFromBase64",
+            "JobSummaryReport.pdf",
+            "application/pdf",
+            base64
+        );
+    }
+
+    void CopyAllToClipboard()
+    {
+        try
+        {
+            // Build the clipboard text synchronously
+            var text = BuildAllRowsClipboardText();
+
+            // Call JS immediately — no await
+            JS.InvokeVoidAsync("copyTextToClipboard", text);
+            JS.InvokeVoidAsync("showToast", "Copied " + filteredJobs.Count() + " rows to clipboard!");
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+
+    string BuildAllRowsClipboardText()
+    {
+        var sb = new StringBuilder();
+
+        // Header row
+        sb.AppendLine("Job Number\tCost Code\tCost Code Description\tBudget & Changes\tTo Date\tThis Period\tRemaining");
+
+        // All rows
+        foreach (var r in filteredJobs)
+        {
+            sb.AppendLine(
+                $"{r.JobNumber}\t" +
+                $"{r.CostCode}\t" +
+                $"{r.CostCodeDescription}\t" +
+                $"{PdfReportHelper.Money(r.BudgetAndChanges)}\t" +
+                $"{PdfReportHelper.Money(r.ToDate)}\t" +
+                $"{PdfReportHelper.Money(r.ThisPeriod)}\t" +
+                $"{PdfReportHelper.Money(r.Remaining)}"
+            );
+        }
+
+        return sb.ToString();
+    }
+
+    protected async Task ExportExcel()
+
+    {
+
+        using var workbook = new XLWorkbook();
+
+        var worksheet = workbook.Worksheets.Add("Job Summary");
+
+        // Header
+
+        worksheet.Cell(1, 1).Value = "Job Number";
+
+        worksheet.Cell(1, 2).Value = "Cost Code";
+
+        worksheet.Cell(1, 3).Value = "Cost Code Description";
+
+        worksheet.Cell(1, 4).Value = "Budget & Changes";
+
+        worksheet.Cell(1, 5).Value = "To Date";
+
+        worksheet.Cell(1, 6).Value = "This Period";
+
+        worksheet.Cell(1, 7).Value = "Remaining";
+
+        // 🔹 Header styling (PDF-like)
+        var headerRange = worksheet.Range(1, 1, 1, 7);
+        headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
+        headerRange.Style.Font.Bold = true;
+        headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        headerRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
+        int row = 2;
+
+        foreach (var r in filteredJobs)
+
+        {
+
+            worksheet.Cell(row, 1).Value = r.JobNumber;
+
+            worksheet.Cell(row, 2).Value = r.CostCode;
+
+            worksheet.Cell(row, 3).Value = r.CostCodeDescription;
+
+            worksheet.Cell(row, 4).Value = PdfReportHelper.Money(r.BudgetAndChanges);
+
+            worksheet.Cell(row, 5).Value = PdfReportHelper.Money(r.ToDate);
+
+            worksheet.Cell(row, 6).Value = PdfReportHelper.Money(r.ThisPeriod);
+
+            worksheet.Cell(row, 7).Value = PdfReportHelper.Money(r.Remaining);
+
+            row++;
+
+        }
+
+        worksheet.Columns().AdjustToContents();
+
+        using var stream = new MemoryStream();
+
+        workbook.SaveAs(stream);
+
+        var base64 = Convert.ToBase64String(stream.ToArray());
+        try
+        {
+            await JS.InvokeVoidAsync(
+
+                "downloadExcelFileFromBase64",
+
+                "JobSummaryReport.xlsx",
+
+                base64
+
+            );
+        }
+        catch (JSDisconnectedException)
+        {
+            // User left page – safe to ignore
+        }
+        catch (Exception ex)
+        {
+
+        }
+
+    }
+}
+<style>
+    .rz-grid-table thead th {
+        background-color: var(--rz-series-1);
+    }
+
+        .rz-grid-table thead th .rz-column-title, .rz-grid-filter-icon {
+            color: #fff;
+        }
+</style>

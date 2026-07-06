@@ -1,0 +1,181 @@
+﻿@using System.Globalization
+@using Radzen
+@using Radzen.Blazor
+@using StowellCoApp.DTO
+@using StowellCoApp.Services
+
+   @*  <RadzenStack class="rz-p-0 rz-p-md-6 rz-p-lg-12">
+    <RadzenCard Variant="Variant.Outlined">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Wrap="FlexWrap.Wrap">
+            <RadzenCheckBox @bind-Value="@showDataLabels" Name="dataLabels"></RadzenCheckBox>
+            <RadzenLabel Text="Show Data Labels" Component="dataLabels" />
+        </RadzenStack>
+    </RadzenCard>
+    <RadzenRow>
+      
+        <RadzenColumn Size="12">
+            <h4>Total Retain by File (Hi/Low Highlight)</h4>
+            <div style="overflow-x:auto; width:100%;">
+                <RadzenChart Style="min-width:1000px">
+                    <RadzenStackedColumnSeries Data="@highestDataset" CategoryProperty="Quarter" Title="Highest" ValueProperty="Revenue">
+                        <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                    </RadzenStackedColumnSeries>
+                    <RadzenStackedColumnSeries Data="@lowestDataset" CategoryProperty="Quarter" Title="Lowest" ValueProperty="Revenue">
+                        <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                    </RadzenStackedColumnSeries>
+                    <RadzenStackedColumnSeries Data="@regularDataset" CategoryProperty="Quarter" Title="Regular" ValueProperty="Revenue">
+                        <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                    </RadzenStackedColumnSeries>
+                    <RadzenColumnOptions Radius="5" />
+                    <RadzenCategoryAxis LabelRotation="-45" Step="2" />
+                    <RadzenValueAxis Formatter="@FormatAsUSD" Min="0">
+                        <RadzenGridLines Visible="true" />
+                        <RadzenAxisTitle Text="Revenue in USD" />
+                    </RadzenValueAxis>
+                </RadzenChart>
+            </div>
+        </RadzenColumn>
+
+    </RadzenRow>
+</RadzenStack> *@
+@* <RadzenStack class="rz-p-0 rz-p-md-6 rz-p-lg-12"> *@
+   @*  <RadzenCard Variant="Variant.Outlined">
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Wrap="FlexWrap.Wrap">
+            <RadzenCheckBox @bind-Value="@showDataLabels" Name="dataLabels"></RadzenCheckBox>
+            <RadzenLabel Text="Show Data Labels" Component="dataLabels" />
+        </RadzenStack>
+    </RadzenCard> *@
+
+    <RadzenRow>
+        <RadzenColumn Size="12">
+            <h4>Total Retain by File (Hi/Low Highlight)</h4>
+
+            <div class="responsive-chart-container">
+                <RadzenChart class="responsive-chart">
+                    <RadzenStackedColumnSeries Data="@highestDataset" CategoryProperty="Quarter" Title="Highest" ValueProperty="Revenue">
+                        <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                    </RadzenStackedColumnSeries>
+
+                    <RadzenStackedColumnSeries Data="@lowestDataset" CategoryProperty="Quarter" Title="Lowest" ValueProperty="Revenue">
+                        <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                    </RadzenStackedColumnSeries>
+
+                    <RadzenStackedColumnSeries Data="@regularDataset" CategoryProperty="Quarter" Title="Regular" ValueProperty="Revenue">
+                        <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                    </RadzenStackedColumnSeries>
+
+                    <RadzenColumnOptions Radius="5" />
+                    <RadzenCategoryAxis LabelRotation="-45" Step="2" />
+                    <RadzenValueAxis Formatter="@FormatAsUSD" Min="0">
+                        <RadzenGridLines Visible="true" />
+                        <RadzenAxisTitle Text="Revenue in USD" />
+                    </RadzenValueAxis>
+                </RadzenChart>
+            </div>
+
+        </RadzenColumn>
+    </RadzenRow>
+@* </RadzenStack>
+ *@
+@code {
+    bool smooth = false;
+    bool sharedTooltip = true;
+    bool showDataLabels = false;
+    bool showMarkers = true;
+    private IEnumerable<ChartData> chartDatasets;
+
+    [Inject]
+    public IJobService JobService { get; set; }
+    [Inject]
+    private ILogger<StackedColumnChart> logger { get; set; } = default!;
+    class DataItem
+    {
+        public string Quarter { get; set; }
+        public double Revenue { get; set; }
+    }
+
+    string FormatAsUSD(object value)
+    {
+        return ((double)value).ToString("C0", CultureInfo.CreateSpecificCulture("en-US"));
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) // important to avoid infinite loops
+        {
+            try
+            {
+                //logger.LogInformation("OnAfterRenderAsync start");
+                chartDatasets = await JobService.GetSampleChartDatasets();
+                var chart = chartDatasets.FirstOrDefault(); // since you only have one dataset
+                var dataset = chart.Datasets[0]; // first dataset
+
+                retainChartData = chart.Labels
+     .Select((label, index) => new DataItem
+         {
+             Quarter = label,
+             Revenue = Convert.ToDouble(dataset.Data[index])
+         })
+     .GroupBy(x => x.Quarter)           // group by label
+     .Select(g => g.First())            // keep first occurrence
+     .ToList();
+                // Assuming retainChartData is your original list of DataItem
+                var max = retainChartData.Max(d => d.Revenue);
+                var min = retainChartData.Min(d => d.Revenue);
+
+                // Create datasets for Radzen
+                 highestDataset = retainChartData
+                    .Select(d => new DataItem
+                    {
+                        Quarter = d.Quarter,
+                        Revenue = d.Revenue == max ? d.Revenue : 0
+                    })
+                    .ToList();
+
+                 lowestDataset = retainChartData
+                    .Select(d => new DataItem
+                    {
+                        Quarter = d.Quarter,
+                        Revenue = d.Revenue == min ? d.Revenue : 0
+                    })
+                    .ToList();
+
+                 regularDataset = retainChartData
+                    .Select(d => new DataItem
+                    {
+                        Quarter = d.Quarter,
+                        Revenue = (d.Revenue != max && d.Revenue != min) ? d.Revenue : 0
+                    })
+                    .ToList();
+
+                StateHasChanged(); // optional, usually not needed in firstRender
+            }
+            catch (Exception ex)
+            {
+                logger.LogInformation($"Error loading chartdataset: {ex.Message}");
+                Console.WriteLine($"Error loading chartdataset: {ex.Message}");
+            }
+        }
+    }
+    private List<DataItem> retainChartData = new();
+    private List<DataItem> regularDataset = new();
+    private List<DataItem> lowestDataset = new();
+    private List<DataItem> highestDataset = new();
+
+    protected override void OnInitialized()
+    {
+        
+    }
+
+}
+<style>
+    .responsive-chart-container {
+        width: 100%;
+        overflow: hidden; /* No horizontal scroll */
+    }
+
+    .responsive-chart {
+        width: 100% !important;
+        height: 400px; /* Or auto if you want */
+    }
+
+</style>

@@ -1,0 +1,166 @@
+﻿@page "/InvoiceReceivable"
+@inherits InvoiceReceivableBase
+@using Radzen
+@using Radzen.Blazor
+@using StowellCoApp.DTO
+@using StowellCoApp.Components.Pages.ProjectManagement
+@using StowellCoApp.Services
+<PageTitle>Invoice Receivable</PageTitle>
+<h3>Invoice Receivable</h3>
+<div class="row form-horizontal">
+    <div class="col-lg-12">
+        <div class="panel">
+            <div class="panel-container">
+                <div class="panel-content">
+                    <div class="row mb-6" style="margin-bottom:20px;">
+                        <div class="col-md-6">
+                            <label class="form-label" for="jobDropdown">Job Number</label>
+                            <br />
+                            <RadzenDropDown Data="@_costCodeRecords"
+                                            TextProperty="RecJobNumber"
+                                            ValueProperty="RecNum"
+                                            @bind-Value="selectedProjectId" Change="OnJobChanged"
+                                            Placeholder="Select ProjectId" width="100%" class="form-control" />
+                        </div>
+                    </div>
+                    <hr />
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+
+                        <div style="display:flex; align-items:center;">
+                            <RadzenIcon Icon="search"
+                                        style="cursor:pointer;background-color:#000;
+                           padding:8px;border-radius:4px;color:white;
+                           height:36px;width:36px;
+                           border-bottom-right-radius:0;
+                           border-top-right-radius:0;" />
+                            <RadzenTextBox @bind-Value="searchTerm"
+                                           Style="width:300px;height:36px;font-size:14px;"
+                                           @oninput="OnInputChanged" />
+                        </div>
+                      
+                        <div style="display:flex;align-items:center;gap:5px;">
+                            <span>Show</span>
+                            <RadzenDropDown @bind-Value="selectedPageSize"
+                                            Data="pageSizes"
+                                            Style="width:80px;"
+                                            Change="OnPageSizeChangedInput" />
+                            <span>entries</span>
+
+                            <div style="display:flex;gap:5px;">
+                                <RadzenButton Text="Copy to clipboard" Click="CopyAllToClipboard" Style="margin-right:5px;background-color:var(--rz-series-1);" />
+
+                                <RadzenButton Text="Export CSV" Click="ExportCsvManual" Style="margin-right:5px;background-color:var(--rz-series-1);" />
+                                <RadzenButton Text="Export PDF" Click="ExportPdf" Style="margin-right:5px;background-color:var(--rz-series-1);" />
+                                <RadzenButton Text="Export Excel" Click="ExportExcel" Style="background-color:var(--rz-series-1);" />
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="row mb-6">
+                        <div class="col-md-12">
+                            <RadzenDataGrid @ref="grid"
+                                            Data="@filteredJobs"
+                                            TItem="StowellCoApp.DTO.InvoiceReceivable"
+                                            AllowPaging="true"
+                                            PageSize="@pageSize"
+                                            AllowSorting="true"
+                                            AllowFiltering="true"
+                                            ShowPagingSummary="true"
+                                            Count="@(filteredJobs?.Count() ?? 0)">
+                                <Columns>
+                                    <RadzenDataGridColumn TItem="StowellCoApp.DTO.InvoiceReceivable"
+                                                          Title="Record#" Property="RecNum">
+                                        <Template Context="item">
+                                            @item.RecNum
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn TItem="StowellCoApp.DTO.InvoiceReceivable"
+                                                          Title="Invoice#" Property="InvNum">
+                                        <Template Context="item">
+                                            @item.InvNum
+                                        </Template>
+                                    </RadzenDataGridColumn>
+
+                                    <RadzenDataGridColumn TItem="StowellCoApp.DTO.InvoiceReceivable"
+                                                          Title="Invoice Date" Property="InvDate">
+                                        <Template Context="item">
+                                            @item.InvDate
+                                        </Template>
+                                    </RadzenDataGridColumn>
+
+                                    <RadzenDataGridColumn TItem="StowellCoApp.DTO.InvoiceReceivable"
+                                                          Title="Description" Property="Description">
+                                        <Template Context="item">
+                                            @item.Description
+                                        </Template>
+                                    </RadzenDataGridColumn>
+
+                                    <RadzenDataGridColumn TItem="StowellCoApp.DTO.InvoiceReceivable"
+                                                          Title="Due Date" Property="DueDate">
+                                        <Template Context="item">
+                                            @item.DueDate
+                                        </Template>
+                                    </RadzenDataGridColumn>
+
+                                    <RadzenDataGridColumn TItem="StowellCoApp.DTO.InvoiceReceivable"
+                                                          Title="Requested" Property="Status">
+                                        <Template Context="item">
+                                            @item.Status
+                                        </Template>
+                                    </RadzenDataGridColumn>
+
+                                    <RadzenDataGridColumn TItem="StowellCoApp.DTO.InvoiceReceivable"
+                                                          Title="Invoice Total" Property="InvTtl">
+                                        <Template Context="item">
+                                            $@item.InvTtl
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn TItem="StowellCoApp.DTO.InvoiceReceivable"
+                                                          Title="Paid" Property="AmtPad">
+                                        <Template Context="item">
+                                            $@item.AmtPad
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn TItem="StowellCoApp.DTO.InvoiceReceivable"
+                                                          Title="Disc/Cred" Property="DiscCred">
+                                        <Template Context="item">
+                                            $@item.DiscCred
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn TItem="StowellCoApp.DTO.InvoiceReceivable"
+                                                          Title="Balance" Property="InvBal">
+                                        <Template Context="item">
+                                            $@item.InvBal
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn TItem="StowellCoApp.DTO.InvoiceReceivable"
+                                                          Title="Retention" Property="Retain">
+                                        <Template Context="item">
+                                            $@item.Retain
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn TItem="StowellCoApp.DTO.InvoiceReceivable"
+                                                          Title="Net Due" Property="InvNet">
+                                        <Template Context="item">
+                                            $@item.InvNet
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                </Columns>
+                            </RadzenDataGrid>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .rz-grid-table thead th {
+        background-color: var(--rz-series-1);
+    }
+
+        .rz-grid-table thead th .rz-column-title, .rz-grid-filter-icon {
+            color: #fff;
+        }
+</style>

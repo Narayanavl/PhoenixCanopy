@@ -1,0 +1,268 @@
+﻿@page "/ReportingDashboard"
+<PageTitle>Reporting Dashboard</PageTitle>
+<div class="row form-horizontal">
+    <div style="width:100%;">
+        <div class="panel">
+            <div class="panel-hdr">
+
+                <h3>Accounting</h3>
+            </div>
+            <div class="panel-container">
+                <div class="panel-content reportlinks">
+                    <div class="row mt-5">
+                        <div class="col-md-2 mb-3 text-center">
+                            @* <a href="http://10.10.1.16/reports/report/Accounting/Cost%20Code%20Summary%20Report" target="_blank"><i class="fas fa-dollar-sign fa-4x"></i><br /><br />Job Cost Summary Reports</a> *@
+                            <a href="/CostCodeSummaryReport" id="ajcs" target="_blank"><i class="fas fa-dollar-sign fa-4x"></i><br /><br />Job Cost Summary Reports</a>
+                        </div>
+                        <div class="col-md-2 mb-3 text-center">
+                            <a href="/CashFlowReport/0" target="_blank"><i class="fas fa-file-invoice-dollar fa-4x"></i><br /><br />Cash Flow Report</a>
+                        </div>
+                        <div class="col-md-2 mb-3 text-center">
+                            <a href="/CashFlowToDate" target="_blank"><i class="fas fa-file-invoice-dollar fa-4x"></i><br /><br />Cash Flow To Date - Multiple</a>
+                        </div>
+                        @* <div class="col-md-2 mb-3 text-center">
+                            <a href="/ReportingDashboard/JobCostJournal"><i class="fas fa-file-invoice-dollar fa-4x"></i><br /><br />Job Cost Journal</a>
+                        </div> *@
+                        <div class="col-md-2 mb-3 text-center">
+                            <a href="/PrimeChangeList" target="_blank"><i class="fas fa-file-invoice-dollar fa-4x"></i><br /><br />Prime Change List</a>
+                        </div>
+                        <div class="col-md-2 mb-3 text-center">
+                            <a href="/InvoiceReceivable" target="_blank"><i class="fas fa-file-invoice-dollar fa-4x"></i><br /><br />Invoice Receivable</a>
+                        </div>
+                        <div class="col-md-2 mb-3 text-center">
+                            <a href="/ARInvoiceList" target="_blank"><i class="fas fa-file-invoice-dollar fa-4x"></i><br /><br />AR Invoice List</a>
+                        </div>
+                        <div class="col-md-2 mb-3 text-center">
+                            <a href="/ContractSummary" target="_blank"><i class="fas fa-file-invoice-dollar fa-4x"></i><br /><br />Contract Summary</a>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row form-horizontal">
+    <div style="width:100%;">
+        <div class="panel">
+            <div class="panel-hdr">
+                <h3>Project Management</h3>
+            </div>
+            <div class="panel-container">
+                <div class="panel-content reportlinks">
+                    <div class="row mt-5">
+                        <div class="col-md-2 mb-3 text-center">
+                            <a href="/JobSummaryReport" target="_blank"><i class="fas fa-file-signature fa-4x"></i><br /><br />Job Summary Report</a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row form-horizontal hide">
+    <div style="width:100%;">
+        <div class="panel">
+            <div class="panel-hdr">
+
+                <h1 class="fw-700 m-0">Power BI Reports</h1>
+            </div>
+            <div class="panel-container">
+                <div class="panel-content reportlinks">
+                    <div class="row">
+                        <div class="col-md-2 mb-3 text-center">
+                            <a href="/ReportingDashboard/BudgetReport" target="_blank"><i class="fas fa-file-signature fa-4x"></i><br /><br />Budget Report</a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+
+        document.getElementById('ajcs').addEventListener('click', function (event) {
+            // Prevent the default action (navigation) from happening immediately
+            event.preventDefault();
+
+            // Get the defaultJobId from localStorage
+            const defaultJobId = localStorage.getItem('defaultJobId');
+            var url = '/CostCodeSummary';
+            // Check if defaultJobId exists
+            if (defaultJobId) {
+                // Dynamically create the URL and navigate to it
+                url = `/CostCodeSummary/${defaultJobId}`;
+            }
+            window.open(url, '_blank');  // Open in a new tab
+        });
+
+
+    });
+</script>
+<style>
+    a {
+        color: #4679cc;
+    }
+    /* ------------------------------
+                   GENERAL FORM LAYOUT
+                --------------------------------*/
+    .panel-hdr > :first-child {
+        padding-left: 1rem;
+    }
+
+    .panel-hdr {
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-align: center;
+        -ms-flex-align: center;
+        align-items: center;
+        background: #fff;
+        min-height: 3rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+        border-radius: 4px 4px 0 0;
+        -webkit-transition: background-color 0.4s ease-out;
+        transition: background-color 0.4s ease-out;
+    }
+
+    .panel-hdr {
+        background: #fff;
+    }
+
+
+    .row {
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -ms-flex-wrap: wrap;
+        flex-wrap: wrap;
+        margin-right: -0.75rem;
+        margin-left: -0.75rem;
+    }
+
+    .row {
+        margin: 0;
+        border-radius: 10px;
+    }
+
+
+    .panel {
+        background-color: #fff;
+        border-bottom: 1px solid #e0e0e0;
+        border-radius: 10px;
+        margin-top: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+        .form-group.row {
+            align-items: center;
+        }
+
+    /* Make labels cleaner */
+    .col-form-label {
+        font-weight: 600;
+        color: #777;
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+    /* Read-only field styling */
+    .form-control[readonly] {
+        background-color: #f7f7f7;
+        opacity: 1;
+        border-color: #dcdcdc;
+        cursor: not-allowed;
+    }
+
+    /* Optional hover effect for editable form controls */
+    .form-control:not([readonly]):hover {
+        border-color: #999;
+    }
+
+    /* Add spacing between inline form groups */
+    .form-group.row > div {
+        margin-bottom: 8px;
+    }
+
+    /* ------------------------------
+                   SECTION HEADERS & DIVIDERS
+                --------------------------------*/
+
+    h2 {
+        font-weight: 700;
+        color: #2c3e50;
+        margin-top: 20px;
+    }
+
+    .hr-line-dashed {
+        border-top: 1px dashed #c7c7c7;
+        margin: 15px 0 25px 0;
+    }
+
+    /* ------------------------------
+                   TABLE STYLING
+                --------------------------------*/
+
+    .table {
+        background-color: #fff;
+        margin-top: 10px;
+    }
+
+        .table th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .table td,
+        .table th {
+            border-color: #dcdcdc;
+            vertical-align: middle;
+            padding: 8px 12px;
+        }
+
+    .table-bordered tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    /* ------------------------------
+                   BUTTONS (optional)
+                --------------------------------*/
+
+    .btn-primary {
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 4px;
+    }
+
+    .hide {
+        display: none !important;
+    }
+
+    /* ------------------------------
+                   RESPONSIVE FIXES
+                --------------------------------*/
+
+    @@media (max-width: 768px) {
+        .col-form-label {
+            text-align: left !important;
+            padding-top: 0;
+            padding-bottom: 2px;
+        }
+
+        .form-group.row > div {
+            margin-bottom: 12px;
+        }
+    }
+
+    .reportlinks a {
+        color: #000;
+    }
+</style>

@@ -1,0 +1,101 @@
+﻿@using Radzen
+@using Radzen.Blazor
+@using StowellCoApp.DTO
+
+<div style="overflow-x:auto; width:100%;">
+    <RadzenChart Style="@( $"width:{Math.Max(CashCollectedDatasetsCount * 50, 800)}px; height:500px;" )">
+        @if (CashChartData != null && CashChartData.Any())
+        {
+            <!-- Cash Collected Series -->
+            <RadzenColumnSeries Data="@CashChartData"
+                                CategoryProperty="Category"
+                                ValueProperty="CashCollected"
+                                Title="Cash Collected"
+                                Fill="#2196f3">
+                <RadzenSeriesDataLabels Visible="true" />
+            </RadzenColumnSeries>
+
+            <!-- Cash Paid Series -->
+            <RadzenColumnSeries Data="@CashChartData"
+                                CategoryProperty="Category"
+                                ValueProperty="CashPaid"
+                                Title="Cash Paid"
+                                Fill="#4caf50">
+                <RadzenSeriesDataLabels Visible="true" />
+            </RadzenColumnSeries>
+
+            <RadzenCategoryAxis Padding="20">
+                <RadzenAxisTitle Text="Job / Category" />
+            </RadzenCategoryAxis>
+
+            <RadzenValueAxis>
+                <RadzenAxisTitle Text="Amount" />
+            </RadzenValueAxis>
+        }
+        else
+        {
+            <div class="p-3 text-muted">No data available.</div>
+        }
+    </RadzenChart>
+</div>
+
+@code {
+    [Parameter]
+    public IEnumerable<ChartData> CashCollectedDatasets { get; set; }
+
+    private List<CashDataItem> CashChartData { get; set; } = new();
+
+    private int CashCollectedDatasetsCount => CashChartData?.Count ?? 1;
+
+    protected override void OnParametersSet()
+    {
+        CashChartData = TransformToCashChartData(CashCollectedDatasets);
+    }
+
+    private List<CashDataItem> TransformToCashChartData(IEnumerable<ChartData> chartDataList)
+    {
+        var result = new List<CashDataItem>();
+        if (chartDataList == null) return result;
+
+        var chartData = chartDataList.FirstOrDefault();
+        if (chartData == null) return result;
+
+        for (int i = 0; i < chartData.Labels.Length; i++)
+        {
+            var category = chartData.Labels[i];
+            decimal cashCollected = 0;
+            decimal cashPaid = 0;
+
+            foreach (var dataset in chartData.Datasets)
+            {
+                if (i < dataset.Data.Length)
+                {
+                    if (dataset.Label == "Cash Collected")
+                        cashCollected = dataset.Data[i];
+                    else if (dataset.Label == "Cash Paid")
+                        cashPaid = dataset.Data[i];
+                }
+            }
+
+            // Truncate long labels for readability
+            if (category.Length > 15)
+                category = category.Substring(0, 15) + "...";
+
+            result.Add(new CashDataItem
+            {
+                Category = category,
+                CashCollected = cashCollected,
+                CashPaid = cashPaid
+            });
+        }
+
+        return result;
+    }
+
+    public class CashDataItem
+    {
+        public string Category { get; set; }
+        public decimal CashCollected { get; set; }
+        public decimal CashPaid { get; set; }
+    }
+}

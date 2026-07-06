@@ -1,0 +1,138 @@
+﻿@using System.Globalization
+@using Radzen
+@using Radzen.Blazor
+@using StowellCoApp.DTO
+@using StowellCoApp.Services
+
+@* <RadzenStack class="rz-p-0 rz-p-md-6 rz-p-lg-12">
+    *@
+    <RadzenRow>
+        <RadzenColumn Size="12">
+            <h4>Cash Collected vs Cash Paid by Job</h4>
+            <RadzenChart SeriesClick=@OnSeriesClick style="height: 400px">
+            <RadzenStackedBarSeries Data="@netCashout" CategoryProperty="Quarter" Title="Net Cash Out" LineType="LineType.Dashed" ValueProperty="Revenue" Fill="#F36A3D" />
+                <RadzenCategoryAxis Padding="10" LabelRotation="-45" />
+                <RadzenValueAxis Formatter="@FormatAsUSD" Min="0" >
+                    <RadzenGridLines Visible="true" />
+                    <RadzenAxisTitle Text="Revenue in USD" />
+                </RadzenValueAxis>
+                <RadzenBarOptions Radius="5" Height="20" />
+            </RadzenChart>
+        </RadzenColumn>
+    </RadzenRow>
+@* </RadzenStack> *@
+
+@* <EventConsole @ref=@console /> *@
+
+@code {
+    EventConsole console;
+    bool showDataLabels;
+
+    void OnSeriesClick(SeriesClickEventArgs args)
+    {
+        console.Log(args);
+    }
+
+    class DataItem
+    {
+        public string Quarter { get; set; }
+        public double Revenue { get; set; }
+    }
+
+    string FormatAsUSD(object value)
+    {
+        double num = (double)value / 1000;
+
+        return num.ToString("$0K");
+    }
+
+    DataItem[] revenue2023 = new DataItem[]
+    {
+    new DataItem
+    {
+        Quarter = "Q1",
+        Revenue = 234000
+    },
+    new DataItem
+    {
+        Quarter = "Q2",
+        Revenue = 284000
+    },
+    new DataItem
+    {
+        Quarter = "Q3",
+        Revenue = 274000
+    },
+    new DataItem
+    {
+        Quarter = "Q4",
+        Revenue = 294000
+    },
+    };
+
+    DataItem[] revenue2024 = new DataItem[] {
+    new DataItem
+    {
+    Quarter = "Q1",
+    Revenue = 254000
+    },
+    new DataItem
+    {
+    Quarter = "Q2",
+    Revenue = 324000
+    },
+    new DataItem
+    {
+    Quarter = "Q3",
+    Revenue = 354000
+    },
+    new DataItem
+    {
+    Quarter = "Q4",
+    Revenue = 394000
+    },
+
+    }; private IEnumerable<ChartData> cashCollectedDatasets;
+
+    [Inject]
+    public IJobService JobService { get; set; }
+    [Inject]
+    private ILogger<LineChart> logger { get; set; } = default!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) // important to avoid infinite loops
+        {
+            try
+            {
+                //logger.LogInformation("OnAfterRenderAsync start");
+                cashCollectedDatasets = await JobService.GetNetCashChart();
+                var chart = cashCollectedDatasets.FirstOrDefault(); // since you only have one dataset
+                var dataset = chart.Datasets[0]; // first dataset
+                netCashout = chart.Labels
+    .Select((label, index) => new DataItem
+    {
+        Quarter = label,
+        Revenue = Convert.ToDouble(dataset.Data[index])
+    })
+    .GroupBy(x => x.Quarter)           // group by label
+    .Select(g => g.First())            // keep first occurrence
+    .ToList();
+                
+                StateHasChanged(); // optional, usually not needed in firstRender
+            }
+            catch (Exception ex)
+            {
+                logger.LogInformation($"Error loading chartdataset: {ex.Message}");
+                Console.WriteLine($"Error loading chartdataset: {ex.Message}");
+            }
+        }
+    }
+    private List<DataItem> netCashout = new();
+
+    protected override void OnInitialized()
+    {
+
+    }
+
+}

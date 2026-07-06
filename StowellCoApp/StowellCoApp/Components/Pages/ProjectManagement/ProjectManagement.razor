@@ -1,0 +1,37 @@
+﻿@page "/ProjectManagement/"
+<PageTitle>Project Management</PageTitle>
+
+<div class="card-header d-flex justify-content-between align-items-center">
+    <h4 class="m-0">Current Jobs</h4>
+
+    <div class="doclibrary">
+        <a href="/DocManagement/Main" target="_blank">
+            <i class="fa fa-folder me-1"></i>
+            Project Document Library
+        </a>
+    </div>
+</div>
+<CurrentJobs></CurrentJobs>
+<style>
+    .card-header {
+        padding: 10px 0;
+        border-bottom: 1px solid #ccc;
+        margin-bottom: 2px;
+        font-weight: normal;
+    }
+
+        .card-header h4 {
+            text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+            color: #676a6c !important;
+            font-weight: 500;
+        }
+
+    .doclibrary a {
+        margin-right: 10px;
+        color: #FE866D !important;
+    }
+
+        .doclibrary a:hover {
+            text-decoration: none;
+        }
+</style>

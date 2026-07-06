@@ -1,0 +1,302 @@
+﻿@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+<nav class="nav-menu">
+    
+    <ul>
+        <!-- Home -->
+        <li>
+            <NavLink href="/" Match="NavLinkMatch.All">
+                <span><i class="fas fa-house" style="color:#fff"></i> Phoenix Home</span>
+
+            </NavLink>
+        </li>
+        <li>
+            <NavLink href="/OppsPipeline" Match="NavLinkMatch.All">
+                <span><i class="fas fa-line-chart" style="color:#fff"></i> Opps Pipeline</span>
+
+            </NavLink>
+            
+        </li>
+        <!-- Estimation -->
+        <li>
+            <button class="menu-toggle" @onclick='() => ToggleMenu("Estimation", "/Estimation/BidQueue")'>
+                <span>
+                    <i class="fas fa-chart-pie" style="color:#fff;"></i> Estimation
+
+                    @* <i class="fas fa-clipboard-list"></i> Estimation *@
+                    <span class="menu-arrow arrow">@((OpenMenu == "Estimation") ? "▲" : "▼")</span>
+                </span>
+            </button>
+            @if (OpenMenu == "Estimation")
+            {
+                <ul class="submenu">
+                    <li><NavLink href="/Estimation/BidQueue">Bid Queue</NavLink></li>
+                    <li><NavLink href="/Estimation/AddBid">New Job/Project Form</NavLink></li>
+                </ul>
+            }
+        </li>
+
+        <!-- Project Management -->
+        <li>
+            @* @onclick='() => ToggleMenu("ProjectMgmt")' *@
+            <button class="menu-toggle" @onclick='() => ToggleMenu("ProjectMgmt", "/ProjectManagement")'>
+                <span>
+                    <i class="fas fa-folder-open" style="color:#fff;"></i> Project Management
+                    @* <i class="fas fa-calendar-check"></i> Project Management *@
+                    <span class="menu-arrow arrow">@((OpenMenu == "ProjectMgmt") ? "▲" : "▼")</span>
+                </span>
+            </button>
+            @if (OpenMenu == "ProjectMgmt")
+            {
+                <ul class="submenu">
+                    <li><NavLink href="/ProjectQueue">Project Queue</NavLink></li>
+                    <li><NavLink href="/ProjectManagement/NewPOForm">New PO Form</NavLink></li>
+                    <li><NavLink href="/ProjectBudgetConfiguration">Project Budget Configuration</NavLink></li>
+                </ul>
+            }
+        </li>
+        <!-- Bids -->
+        <li>
+            @* @onclick='() => ToggleMenu("ProjectMgmt")' *@
+            <button class="menu-toggle" @onclick='() => ToggleMenu("Bids", "/Bids/CurrentBids")'>
+                <span>
+                    <i class="fas fa-folder-open"></i> Opportunities
+                    @* <i class="fas fa-calendar-check"></i> Project Management *@
+                    <span class="menu-arrow arrow">@((OpenMenu == "Bids") ? "▲" : "▼")</span>
+                </span>
+            </button>
+            @if (OpenMenu == "Bids")
+            {
+                <ul class="submenu">
+                    <li><NavLink href="/Bids/BidQueue">Opportunity Queue</NavLink></li>
+                    <li><NavLink href="/Bids/NewBid">New Opportunity</NavLink></li>
+                </ul>
+            }
+        </li>
+        <!-- Accounting with Nested PO Queue -->
+        <li>
+            <button class="menu-toggle" @onclick='() => ToggleMenu("Accounting", "/Accounting")'>
+                <span>
+                    <i class="fas fa-coins" style="color:#fff;"></i> Accounting
+                    @* <i class="fas fa-receipt"></i> Accounting *@
+                    <span class="menu-arrow arrow">@((OpenMenu == "Accounting") ? "▲" : "▼")</span>
+                </span>
+            </button>
+            @if (OpenMenu == "Accounting")
+            {
+                <ul class="submenu">
+                    <!-- PO Queue Nested -->
+                    <li>
+                        <button class="menu-toggle" @onclick='() => ToggleSubMenu("POQueue", "/Accounting/POQueue")' @onclick:stopPropagation="true">
+                            <span>
+                                @* <i class="fas fa-file-signature"></i> *@ PO Queue
+                                <span class="menu-arrow arrow"></span>
+                            </span>
+                        </button>
+                        @if (OpenSubMenu == "POQueue")
+                        {
+                            <ul class="submenu">
+                                <li><NavLink href="/ProjectManagement/NewPOForm">New PO Form</NavLink></li>
+                            </ul>
+                        }
+                    </li>
+
+                    <!-- Other Accounting Items -->
+                    <li><NavLink >CO Queue</NavLink></li>
+                    <li><NavLink >PO Dashboard</NavLink></li>
+                    <li><NavLink >Project Budget</NavLink></li>
+                </ul>
+            }
+        </li>
+
+        <!-- Other Links -->
+        <li>
+            <NavLink href="/Hr">
+                <i class="fas fa-users" style="color:#fff;"></i> HR
+                @* <i class="fas fa-user-tie"></i> HR *@
+            </NavLink>
+        </li>
+        
+        <li>
+            <button class="menu-toggle" @onclick='() => ToggleMenu("BizOps", "/BIReports")' >
+                <span>
+                    <i class="fas fa-cogs" style="color:#fff;"></i> BizOps
+                    @* <i class="fas fa-receipt"></i> Accounting *@
+                    <span class="menu-arrow arrow">@((OpenMenu == "BizOps") ? "▲" : "▼")</span>
+                </span>
+            </button>
+            @if (OpenMenu == "BizOps")
+            {
+                <ul class="submenu">
+            
+
+                    <!-- Other Accounting Items -->
+                    <li><NavLink href="/BIReports">BI Reports</NavLink></li>
+                    <li><NavLink href="/SysOps">SysOps</NavLink></li>
+                    <li><NavLink href="/DevOps">DevOps</NavLink></li>
+                    <li><NavLink href="/VendorManagement">Vendor Management</NavLink></li>
+                    <li><NavLink href="/Compliance">Compliance</NavLink></li>
+                    <li><NavLink href="/Legal">Legal</NavLink></li>
+                </ul>
+            }
+        </li>
+        <li>
+            <NavLink href="/ReportingDashboard">
+                <i class="fa fa-bar-chart" style="color:#fff;"></i> Reports
+
+            @* <i class="fas fa-calendar-check"></i> Reports *@
+            </NavLink>
+        </li>
+        <li>
+            <NavLink href="/StowellAdmin">
+            @* <i class="fas fa-users-cog"></i> Stowell Admin *@
+                <i class="fa-solid fa-user-gear" style="color:#fff;"></i> Phoenix Admin
+            </NavLink></li>
+        <li>
+            <NavLink>
+                <i class="fas fa-phone" style="color:#fff;"></i> Contacts
+                @* <i class="fas fa-address-book"></i> Contacts *@
+            </NavLink>
+            
+        </li>
+    </ul>
+</nav>
+<div class="icon-toolbar">
+  @*   <button title="Support" onclick="window.location.href='mailto:support@proserv360.tech'">
+        <i class="fas fa-handshake"></i>
+    </button> *@
+    <button class="icon-btn" title="Support" aria-label="Support" onclick="window.location.href='mailto:support@proserv360.tech'">
+        <i class="fas fa-handshake"></i></button>
+    <button class="icon-btn" title="Password Management" 
+    @onclick="GoToPasswordPage" aria-label="Password Management"><i class="fas fa-key"></i></button>
+
+ @*    <button title="Key">
+        <i class="fas fa-key"></i>
+    </button> *@
+    <button title="Download" @onclick="ToggleDropdown" aria-label="More Apps"
+            @onclick:stopPropagation="true">
+        
+        <i class="fas fa-arrow-alt-circle-down"></i>
+    </button>
+    <div class="quick-shortcut @(IsOpen ? "show" : "")">
+        <div class="quick-shortcut-header">
+            <h4>Quick Shortcut</h4>
+            <small>User Applications & Addons</small>
+            <i class=""></i>
+        </div>
+
+        <div class="quick-shortcut-body">
+            <ul class="quick-shortcut-list">
+                <li>
+                    <a href="https://myaccount.microsoft.com/"
+                       target="_blank"
+                       class="quick-shortcut-item">
+                        <div class="quick-shortcut-icon">
+                            <i class="fa fa-user text-primary"></i>
+                        </div>
+                        <div class="quick-shortcut-label">Account</div>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="https://outlook.office.com/mail/"
+                       target="_blank"
+                       class="quick-shortcut-item">
+                        <div class="quick-shortcut-icon">
+                            <img src="https://react.proserv360.tech/assets/outlook-icon-ComIkiQ6.jpeg" />
+                        </div>
+                        <div class="quick-shortcut-label">Outlook</div>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="https://outlook.office.com/calendar/view/workweek/"
+                       target="_blank"
+                       class="quick-shortcut-item">
+                        <div class="quick-shortcut-icon">
+                            <i class="fa fa-calendar text-primary"></i>
+                        </div>
+                        <div class="quick-shortcut-label">Calendar</div>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <button title="Logout" @onclick="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+    </button>
+</div>
+
+@code {
+    // State for top-level menu
+    private string? OpenMenu = null;
+
+    // State for second-level (nested) submenu
+    private string? OpenSubMenu = null;
+
+    // Toggle top-level menu
+    private void ToggleMenu(string menuName, string? url = null)
+    {
+        if (OpenMenu == menuName)
+        {
+            OpenMenu = null; // Close menu if already open
+        }
+        else
+        {
+            OpenMenu = menuName; // Open menu
+        }
+
+        // Navigate if URL is provided
+        if (!string.IsNullOrEmpty(url))
+        {
+            NavigationManager.NavigateTo(url);
+        }
+    }
+
+    // Toggle nested submenu
+    // private void ToggleSubMenu(string submenuName)
+    // {
+    //     OpenSubMenu = OpenSubMenu == submenuName ? null : submenuName;
+    // }
+    private void ToggleSubMenu(string submenuName, string? url = null)
+    {
+        OpenSubMenu = OpenSubMenu == submenuName ? null : submenuName;
+        // Navigate if URL is provided
+        if (!string.IsNullOrEmpty(url))
+        {
+            NavigationManager.NavigateTo(url);
+        }
+    }
+    private async Task GoToPasswordPage()
+    {
+        await JS.InvokeVoidAsync(
+            "openInNewTab",
+            "https://stowell.proserv360.tech/RDWeb/Pages/en-US/password.aspx");
+    }
+    private bool IsOpen;
+
+    
+    private void ToggleDropdown()
+    {
+        IsOpen = !IsOpen;
+    }
+    private void Logout()
+    {
+        NavigationManager.NavigateTo("authentication/logout", forceLoad: true);
+    }
+}
+<style>
+    .menu-arrow {
+        font-size: 13px; /* smaller arrow */
+        line-height: 1; /* keeps it aligned vertically */
+        vertical-align: middle; /* aligns with text and icons */
+        transition: transform 0.2s ease; /* optional: for rotation animation */
+        display: inline-block; /* needed if you want to rotate the arrow */
+    }
+
+        /* Optional: rotate arrow when menu is open */
+        .menu-arrow.open {
+            transform: rotate(180deg);
+        }
+
+</style>

@@ -1,0 +1,23 @@
+﻿<div class="page-header">
+    <h1 class="page-title">@Title</h1>
+
+    <nav class="breadcrumbs">
+        @foreach (var item in Breadcrumbs)
+        {
+            if (item != Breadcrumbs.Last())
+            {
+                <span class="breadcrumb-link">@item</span>
+                <span class="breadcrumb-separator"> / </span>
+            }
+            else
+            {
+                <span class="breadcrumb-current">@item</span>
+            }
+        }
+    </nav>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public List<string> Breadcrumbs { get; set; } = [];
+}

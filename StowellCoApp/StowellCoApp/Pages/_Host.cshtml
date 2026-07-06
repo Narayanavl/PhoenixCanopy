@@ -1,0 +1,58 @@
+﻿@page "/"
+@namespace StowellCoApp.Pages
+@using StowellCoApp.Components
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Phoenix App</title>
+    <base href="~/" />
+    <link rel="apple-touch-icon" sizes="180x180" href="~/images/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://static.wixstatic.com/media/d264af_61f93dd523d04bfbbb8fb78e3e07607b~mv2.jpg/v1/fill/w_109,h_96,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/d264af_61f93dd523d04bfbbb8fb78e3e07607b~mv2.jpg">
+    <!-- FIX: Add Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <link rel="stylesheet" href="_content/Radzen.Blazor/css/default-base.css">
+    <link rel="stylesheet" href="_content/Radzen.Blazor/css/default.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+    <link href="_content/Syncfusion.Blazor.Themes/bootstrap5.css" rel="stylesheet" />
+   
+
+</head>
+<body>
+    <app>
+        <component type="typeof(App)" render-mode="ServerPrerendered" />
+        <component type="typeof(Radzen.Blazor.RadzenNotification)" render-mode="ServerPrerendered"  />
+        <component type="typeof(Radzen.Blazor.RadzenDialog)" render-mode="ServerPrerendered" />
+    </app>
+
+    <!-- Blazor Server runtime -->
+    <script src="_framework/blazor.server.js"></script>
+    <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+    <script src="https://cdn.syncfusion.com/ej2/31.1.17/dist/ej2.min.js"></script>
+    <script src="_content/Syncfusion.Blazor.Core/scripts/syncfusion-blazor.min.js" type="text/javascript"></script>
+    @* <script src="_content/Syncfusion.Blazor/scripts/syncfusion-blazor.min.js" type="text/javascript"></script> *@
+    <!-- PDF Viewer (New Sf version) -->
+    <script src="_content/Syncfusion.Blazor.SfPdfViewer/scripts/syncfusion-blazor-sfpdfviewer.min.js" type="text/javascript"></script>
+
+    <!-- Word Processor (Document Editor) -->
+    <script src="_content/Syncfusion.Blazor.WordProcessor/scripts/syncfusion-blazor-documenteditor.min.js" type="text/javascript"></script>
+
+    <!-- Spreadsheet -->
+    <script src="_content/Syncfusion.Blazor.Spreadsheet/scripts/syncfusion-blazor-spreadsheet.min.js" type="text/javascript"></script>
+
+    <!-- File Manager -->
+    @* <script src="_content/Syncfusion.Blazor.FileManager/scripts/syncfusion-blazor-filemanager.min.js" type="text/javascript"></script> *@
+
+
+    @* <script src="_content/Syncfusion.Blazor/scripts/syncfusion-blazor.min.js"></script> *@
+    <script src="~/js/export.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,203 @@
+﻿@page "/ProjectManagement/ProjectOverview/{ProjectId:int}"
+@using StowellCoApp.Components.Pages.DocumentManagement
+@using StowellCoApp.DTO
+@using StowellCoApp.Components.Pages.ProjectManagement
+@using StowellCoApp.Services
+@inject NavigationManager Nav
+@inject IProjectOverviewService ProjectService
+
+<h3>Project Overview</h3>
+<hr />
+
+@* @if (Model == null)
+{
+    <p>Loading...</p>
+}
+else
+{ *@
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link @(ActiveTab == "overview" ? "active" : "")"
+               @onclick="@(() => SwitchTab("overview"))"><i class="fas fa-chart-column mr-1 fa-1x"></i> Overview</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(ActiveTab == "details" ? "active" : "")"
+               @onclick="@(() => SwitchTab("details"))"><i class="fas fa-clipboard-list mr-1 fa-1x"></i> Details</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(ActiveTab == "financials" ? "active" : "")"
+               @onclick="@(() => SwitchTab("financials"))"><i class="fas fa-money-bill-wave mr-1 fa-1x"></i> Financials</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(ActiveTab == "reporting" ? "active" : "")"
+               @onclick="@(() => SwitchTab("reporting"))"><i class="fas fa-chart-pie mr-1 fa-1x"></i> Reporting</a>
+        </li>
+    </ul>
+
+    <div class="border p-3">
+
+        @switch (ActiveTab)
+        {
+            case "overview":
+            <OverviewTab ProjectId="ProjectId" />
+                break;
+
+            case "details":
+            <ProjectDetailsTab ProjectId="ProjectId" />
+                break;
+
+            case "financials":
+            <FinancialsTab ProjectId="ProjectId" />
+                break;
+
+            case "reporting":
+            <ReportingTab ProjectId="ProjectId" />
+                break;
+        }
+    </div>
+@* } *@
+
+@code {
+    [Parameter] public int ProjectId { get; set; }
+
+    //public CurrentCostSummaryViewModel Model { get; set; }
+
+    string ActiveTab = "overview";
+
+    protected override async Task OnInitializedAsync()
+    {
+       // Model = await projectOverView.GetCurrentCostSummaryViewModel(Convert.ToString(ProjectId));
+   
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) // important to avoid infinite loops
+        {
+           // Model = await projectOverView.GetCurrentCostSummaryViewModel(Convert.ToString(ProjectId));
+        }
+    }
+    void SwitchTab(string tab)
+    {
+        ActiveTab = tab;
+    }
+}
+<style>
+    /* -----------------------------
+       TAB NAVIGATION
+    --------------------------------*/
+
+    .nav-tabs .nav-link {
+        padding: 10px 18px;
+        font-weight: 600;
+        color: #555;
+        border-radius: 0;
+        transition: background-color .25s, color .25s, border-color .25s;
+    }
+
+        .nav-tabs .nav-link:hover {
+            background-color: #f5f5f5;
+            color: #222;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: #fff;
+            color: #FE866D;
+            border-color: #dee2e6 #dee2e6 #fff;
+            border-bottom: 2px solid #FE866D;
+        }
+
+    /* Better spacing between tabs */
+    .nav-tabs .nav-item {
+        margin-right: 5px;
+    }
+
+    /* Remove focus outline when clicking tabs */
+    .nav-tabs .nav-link:focus {
+        box-shadow: none;
+    }
+
+    /* -----------------------------
+       TAB CONTENT BOX
+    --------------------------------*/
+
+    .tab-content-box,
+    .project-tab-box {
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-top: none;
+        padding: 20px;
+        border-radius: 0 0 4px 4px;
+    }
+
+    /* Slight fade animation on tab switch */
+    .tab-switch-fade {
+        animation: fadeIn .25s ease;
+    }
+
+    @@keyframes fadeIn {
+        from
+
+    {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+
+    }
+
+    /* -----------------------------
+       DATA ROWS & LABEL STYLING
+    --------------------------------*/
+
+    .row.mb-2 {
+        padding: 6px 0;
+    }
+
+    .row .font-weight-bold {
+        color: #444;
+    }
+
+    /* Optional alternating background rows */
+    .row.mb-2:nth-child(odd) {
+        background-color: #fafafa;
+    }
+
+    /* -----------------------------
+       TABLE STYLING (Financials / Reporting)
+    --------------------------------*/
+
+    .table th {
+        background-color: #f1f1f1;
+        font-weight: 600;
+    }
+
+    .table td,
+    .table th {
+        vertical-align: middle;
+    }
+
+    /* Improve table borders */
+    .table-bordered td,
+    .table-bordered th {
+        border-color: #dcdcdc;
+    }
+
+    /* Hover effect for table rows */
+    .table-striped tbody tr:hover {
+        background-color: #f0f0f0;
+        cursor: default;
+    }
+
+    .nav-tabs{
+        display:flex;
+        list-style:none;
+    }
+
+    h2 {
+        text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+        color: #676a6c !important;
+        font-weight: 500;
+    }
+</style>

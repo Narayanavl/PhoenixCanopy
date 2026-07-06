@@ -1,0 +1,91 @@
+﻿@using System.Globalization
+@using Radzen
+@using Radzen.Blazor
+@using StowellCoApp.DTO
+@using StowellCoApp.Services
+
+@* <RadzenStack class="rz-p-0 rz-p-md-6 rz-p-lg-12">
+    *@
+
+<RadzenRow>   
+    <RadzenColumn Size="12">
+        <h4>Retain Amount Across Files</h4>
+            <RadzenChart>
+                <RadzenChartTooltipOptions Shared="@sharedTooltip" />
+                <RadzenLineSeries Smooth="@smooth" Data="@retainChartData1" CategoryProperty="Date" Title="Revenue" LineType="LineType.Dashed" ValueProperty="Revenue">
+                    <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Square" />
+                    <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                </RadzenLineSeries>
+
+                <RadzenCategoryAxis Padding="10" LabelRotation="-45"/>
+                <RadzenValueAxis Min="0" Formatter="@FormatAsUSD">
+                    <RadzenGridLines Visible="true" />
+                    <RadzenAxisTitle Text="Revenue in USD" />
+                </RadzenValueAxis>
+            </RadzenChart>
+  
+    </RadzenColumn>
+    </RadzenRow>
+@* </RadzenStack> *@
+
+@code {
+    bool smooth = false;
+    bool sharedTooltip = true;
+    bool showDataLabels = false;
+    bool showMarkers = true;
+
+    class DataItem1
+    {
+        public string Date { get; set; }
+        public double Revenue { get; set; }
+    }
+
+    string FormatAsUSD(object value)
+    {
+        return ((double)value).ToString("C0", CultureInfo.CreateSpecificCulture("en-US"));
+    }
+
+    private IEnumerable<ChartData> chartDatasets1;
+
+    [Inject]
+    public IJobService JobService { get; set; }
+    [Inject]
+    private ILogger<LineChart> logger { get; set; } = default!;
+   
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) // important to avoid infinite loops
+        {
+            try
+            {
+                //logger.LogInformation("OnAfterRenderAsync start");
+                chartDatasets1 = await JobService.GetSampleChartDatasets();
+                var chart = chartDatasets1.FirstOrDefault(); // since you only have one dataset
+                var dataset = chart.Datasets[0]; // first dataset
+                retainChartData1 = chart.Labels
+    .Select((label, index) => new DataItem1
+    {
+        Date = label,
+        Revenue = Convert.ToDouble(dataset.Data[index])
+    })
+    .GroupBy(x => x.Date)           // group by label
+    .Select(g => g.First())            // keep first occurrence
+    .ToList();
+//retainChartData1 = chart.Labels.Select((label, index) => new DataItem1 { Date = label, Revenue = Convert.ToDouble(dataset.Data[index]) }).ToList();
+                StateHasChanged(); // optional, usually not needed in firstRender
+            }
+            catch (Exception ex)
+            {
+                logger.LogInformation($"Error loading chartdataset: {ex.Message}");
+                Console.WriteLine($"Error loading chartdataset: {ex.Message}");
+            }
+        }
+    }
+    private List<DataItem1> retainChartData1 = new();
+
+    protected override void OnInitialized()
+    {
+
+    }
+
+}

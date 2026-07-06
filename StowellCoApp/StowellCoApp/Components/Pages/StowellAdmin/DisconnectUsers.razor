@@ -1,0 +1,50 @@
+﻿@page "/StowellAdmin/DisconnectUsers"
+@using Radzen
+@using Radzen.Blazor
+@using StowellCoApp.Services
+<h3>Disconnect Users</h3>
+<hr />
+<div>
+     <RadzenButton Text="Disconnect All Users" Style="background-color:var(--rz-series-1);" Click="OnDisconnectAllUsers"/>
+</div>
+@code {
+
+    [Inject]
+    public IStowellAdminService _stowellAdminService { get; set; }
+
+    [Inject]
+    public NotificationService NotificationService { get; set; }
+    protected async Task OnDisconnectAllUsers()
+    {
+        try
+        {
+            await _stowellAdminService.ProcessDisconnectUsers();
+
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Success",
+                Detail = "All users have been disconnected successfully.",
+                Duration = 4000
+            });
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Error",
+                Detail = $"Failed to disconnect users: {ex.Message}",
+                Duration = 5000
+            });
+        }
+    }
+}
+<style>
+    .rz-notification {
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        right: auto !important;
+    }
+</style>

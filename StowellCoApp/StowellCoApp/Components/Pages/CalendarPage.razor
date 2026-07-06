@@ -1,0 +1,98 @@
+﻿@page "/CalendarPage"
+<h3>CalendarPage</h3>
+@using Radzen
+@using Radzen
+
+<RadzenScheduler TItem="MyEventViewModel"
+                 Data="@calendarEvents"
+                 StartProperty="Start"
+                 EndProperty="End"
+                 TextProperty="Subject"
+                 Style="height: 400px;">
+
+    <!-- Scheduler views -->
+    <RadzenMonthView />
+    <RadzenWeekView />
+    <RadzenDayView />
+
+    <!-- Custom List button -->
+    <RadzenButton Text="List"
+                  Icon="list"
+                  Click="@ToggleView"
+                  class="rz-scheduler-view scheduler-list-btn" />
+
+</RadzenScheduler>
+
+<style>
+    .custom-scheduler-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 6px 8px;
+    }
+
+    .header-left,
+    .header-right {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .header-center {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .list-view-button {
+        font-weight: 600;
+    }
+    /* Make view buttons row flex */
+    .rz-scheduler-views {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Style List button to match */
+    .scheduler-list-btn {
+        font-weight: 600;
+    }
+    /* Ensure scheduler view buttons align correctly */
+    .rz-scheduler-views {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Match Radzen view button style */
+    .scheduler-list-btn {
+        font-weight: 600;
+    }
+
+</style>
+
+@code {
+    List<MyEventViewModel> calendarEvents = new()
+    {
+        new MyEventViewModel
+        {
+            Start = DateTime.Today.AddHours(1),
+            End = DateTime.Today.AddHours(2),
+            Subject = "Sample Event"
+        }
+    };
+
+    void ToggleView()
+    {
+        Console.WriteLine("List view clicked");
+    }
+
+    public class MyEventViewModel
+    {
+        public string Subject { get; set; }
+        public DateTime Start { get; set; }
+        public DateTime End { get; set; }
+        public string Organizer { get; set; }
+    }
+}

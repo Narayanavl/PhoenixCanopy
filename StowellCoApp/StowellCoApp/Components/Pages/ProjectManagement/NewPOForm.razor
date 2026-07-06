@@ -1,0 +1,178 @@
+﻿@page "/ProjectManagement/NewPOForm"
+
+<style>
+    .wrapper-content .row {
+        margin: 10px 0px;
+    }
+
+    .mod-high-contrast:not(.mod-skin-dark) .btn-secondary {
+        color: #FFF !important;
+        text-shadow: none !important;
+    }
+    table th{
+        background-color: #000;
+        color:#fff;
+    }
+    .btn-primary{
+        background-color: #000 !important;
+        border-color: #000 !important;
+    }
+</style>
+<div>
+
+    <div class="wrapper wrapper-content">
+        <div class="row white-bg p-10 my-3">
+            <div class="col-lg-12">
+
+                <form method="post" enctype="multipart/form-data">
+                    <h2>Purchase Order Request</h2>
+                    <div class="hr-line-dashed"></div>
+                    <div class="form-group row">
+                        <div class="col-lg-12">
+                            <div class="form-group row">
+                                <label for="JobID" class="col-sm-1 col-form-label">Job ID</label>
+                                <div class="col-sm-3">
+                                    <select id="JobID" class="form-control">
+                                        <option>Select</option>
+                                    </select>
+                                </div>
+                                <label for="DateRequested" class="col-sm-2 col-form-label">Date Requested</label>
+                                <div class="col-sm-3">
+                                    <input type="date" id="DateRequested" class="form-control" />
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label for="JobName" class="col-sm-1 col-form-label">Job Name</label>
+                                <div class="col-sm-3">
+                                    <input type="text" id="JobName" class="form-control" placeholder="Placeholder" />
+                                </div>
+                                <label for="RequiredOnSite" class="col-sm-2 col-form-label">Required Onsite</label>
+                                <div class="col-sm-3">
+                                    <input type="date" id="RequiredOnSite" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="Requester" class="col-sm-1 col-form-label">Requester</label>
+                                <div class="col-sm-3">
+                                    <input type="text" id="Requester" class="form-control" placeholder="Placeholder" />
+                                </div>
+                                <label for="Building" class="col-sm-2 col-form-label">Building</label>
+                                <div class="col-md-3">
+                                    <select id="Building" class="form-control">
+                                        <option>Select</option>
+                                    </select>
+                                </div>
+                                <label for="Floor" class="col-sm-1 col-form-label">Floor</label>
+                                <div class="col-sm-2">
+                                    <select id="Floor" class="form-control">
+                                        <option>Select</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="RequestedChangeReason" class="col-sm-3 col-form-label">
+                                    Requested Change
+                                    Reason
+                                </label>
+                                <div class="col-md-6">
+                                    <textarea id="RequestedChangeReason" class="form-control"></textarea>
+                                </div>
+                            </div>
+
+                            <h3 class="mt-5">Requested Item</h3>
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Approval</th>
+                                        <th>Quantity</th>
+                                        <th>Item Description</th>
+                                        <th>Cost Code</th>
+                                        <th>UOM</th>
+                                        <th>Unit Cost</th>
+                                        <th>Vendor</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><input type="checkbox" /></td>
+                                        <td><input type="number" class="form-control" value="10" /></td>
+                                        <td>Paint</td>
+                                        <td>101</td>
+                                        <td>Ea</td>
+                                        <td>$100</td>
+                                        <td></td>
+                                        <td><button class="btn btn-sm btn-primary">Edit</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="checkbox" /></td>
+                                        <td><input type="number" class="form-control" value="5" /></td>
+                                        <td>Plywood</td>
+                                        <td>100</td>
+                                        <td>Ea</td>
+                                        <td>$1000</td>
+                                        <td></td>
+                                        <td><button class="btn btn-sm btn-primary">Edit</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="checkbox" /></td>
+                                        <td><input type="number" class="form-control" value="20" /></td>
+                                        <td>2X4</td>
+                                        <td>104</td>
+                                        <td>Ea</td>
+                                        <td>$20</td>
+                                        <td></td>
+                                        <td><button class="btn btn-sm btn-primary">Edit</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <button class="btn btn-primary">ADD</button>
+
+                            <h3 class="mt-5">Back Charges</h3>
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Vendor</th>
+                                        <th>% Charge</th>
+                                        <th>$ Charge</th>
+                                        <th>Reason</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Labor Crew</td>
+                                        <td></td>
+                                        <td>$1000</td>
+                                        <td>Crew damaged panels</td>
+                                        <td><button class="btn btn-sm btn-primary">Edit</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Vendor</td>
+                                        <td></td>
+                                        <td>$5000</td>
+                                        <td>Plywood was damaged in transit</td>
+                                        <td><button class="btn btn-sm btn-primary">Edit</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <button class="btn btn-primary">ADD</button>
+
+                            <div class="form-group row mt-5">
+                                <div class="col-md-2">
+                                    <button class="btn btn-primary btn-block">Generate PO</button>
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-secondary btn-block">Submit Request</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+   

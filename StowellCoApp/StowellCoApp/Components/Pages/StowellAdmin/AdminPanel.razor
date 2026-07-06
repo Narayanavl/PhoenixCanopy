@@ -1,0 +1,292 @@
+﻿@page "/StowellAdmin/AdminPanel"
+@using Radzen
+@using Radzen.Blazor
+@using StowellCoApp.Models
+@using StowellCoApp.Services
+@inherits AdminPanelBase
+<PageTitle>Project Access Management</PageTitle>
+<h3>Project Access Management</h3>
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+    <!-- Left: Search box with icon -->
+
+    <div style="display: flex; align-items: center; /* gap: 8px; */">
+        <RadzenIcon Icon="search"
+                    style="
+                    cursor: pointer;
+                    background-color: #000;
+                    padding: 8px;
+                    border-radius: 4px;
+                    color: #fff;
+                    font-size: 18px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    height: 36px;
+                    width: 36px;
+border-bottom-right-radius:0;
+border-top-right-radius:0
+                " />
+        <RadzenTextBox @bind-Value="searchTerm"
+                       Placeholder="Search ..."
+                       Style="width: 300px; height: 36px; font-size: 14px;" @oninput="OnInputChanged" />
+    </div>
+    <div style="display:flex; align-items:center; gap:5px;">
+        <span>Show</span>
+        <RadzenDropDown @bind-Value="selectedPageSize" Data="pageSizes" Style="width:80px;" Change="OnPageSizeChangedInput" />
+        <span>entries</span>
+    </div>
+
+</div>
+
+<RadzenDataGrid Data="@filteredProjectManagementUsers" @ref="projectManagementGrid"
+                TItem="ProjectManagementUser" AllowFiltering="true"
+                ExpandMode="DataGridExpandMode.Single" AllowSorting="true" PageSize="@pageSize"
+                ShowPagingSummary="true" Count="@(filteredProjectManagementUsers!=null ?filteredProjectManagementUsers.Count():0)"
+                AllowPaging="true">
+
+    <Template Context="project">
+
+        <!-- Add Assignment Button -->
+        <RadzenButton Text="Add"
+                      Icon="add_circle"
+                      ButtonStyle="ButtonStyle.Primary"
+                      ButtonType="ButtonType.Button"
+                      Style="margin-bottom:10px"
+                      Click="@(async () => await AddAssignment(project))" />
+
+        <!-- Child Grid -->
+        <RadzenDataGrid Data="@project.Assignments"
+                        TItem="ProjectManagementUser"
+                        AllowPaging="false">
+
+            <Columns>
+
+                <!-- ROLE COLUMN -->
+                <RadzenDataGridColumn Title="Role">
+                    <Template Context="row">
+                        @if (row.IsNew)
+                        {
+                            <RadzenDropDown Data="@_projectRoles"
+                                            TextProperty="RoleName"
+                                            ValueProperty="RoleId"
+                                            @bind-Value="row.SelectedRoleId"
+                                            Placeholder="Select Role"
+                                            Style="width:100%" />
+                        }
+                        else
+                        {
+                            @row.UserRoleName
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <!-- EMPLOYEE COLUMN -->
+                <RadzenDataGridColumn Title="Employee">
+                    <Template Context="row">
+                        @if (row.IsNew)
+                        {
+                            <RadzenDropDown Data="@_stowellUsers"
+                                            TextProperty="Mail"
+                                            ValueProperty="Id"
+                                            @bind-Value="row.SelectedUserId"
+                                            Placeholder="Select mail"
+                                            Style="width:100%" />
+                        }
+                        else
+                        {
+                            @row.EmailId
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <!-- ACTIONS -->
+                <RadzenDataGridColumn Title="Actions" Width="180px">
+                    <Template Context="row">
+                        @if (row.IsNew)
+                        {
+
+                            var parent = project; // capture the parent project for this row
+
+                            <RadzenButton Icon="check"
+                                          ButtonStyle="ButtonStyle.Success"
+                                          ButtonType="ButtonType.Button"
+                                          Size="ButtonSize.Small"
+                                          Click="@(() => SaveAssignment(row))" />
+
+                            <RadzenButton Icon="close"
+                                          ButtonStyle="ButtonStyle.Light"
+                                          ButtonType="ButtonType.Button"
+                                          Size="ButtonSize.Small"
+                                          class="rz-ms-1"
+                                          Click="@(() => CancelAssignment(parent, row))" />
+                        }
+                        else
+                        {
+                            @* <RadzenButton Icon="edit"
+                                          Size="ButtonSize.Small"
+                                          class="rz-me-1" /> *@
+
+                            <RadzenButton Icon="delete"
+                                          ButtonStyle="ButtonStyle.Danger"
+                                          ButtonType="ButtonType.Button"
+                                          Size="ButtonSize.Small"
+                                          Click="@(() => DeleteAssignment(row))" />
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+
+            </Columns>
+        </RadzenDataGrid>
+    </Template>
+
+    <!-- PARENT GRID -->
+    <Columns>
+        <RadzenDataGridColumn Title="Project">
+            <Template Context="p">
+                <strong>@p.JobNumber</strong>
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+
+</RadzenDataGrid>
+
+<style>
+    .rz-notification {
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        right: auto !important;
+    }
+
+    .radzen-notification {
+        z-index: 9999 !important;
+        position: fixed;
+        top: 10px;
+        right: 10px;
+    }
+    /* Style for the autocomplete input field */
+    .radzen-autocomplete input {
+        width: 100%;
+        padding: 10px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    /* Style for the dropdown list */
+    .radzen-autocomplete .rz-dropdown {
+        border: 1px solid #ccc;
+        background-color: #fff;
+        border-radius: 4px;
+        max-height: 200px; /* Set a max height to avoid long lists */
+        overflow-y: auto; /* Scrollable if the list exceeds max height */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Highlight the item when hovering */
+    .radzen-autocomplete .rz-list-item:hover {
+        background-color: #f0f0f0;
+    }
+
+    /* Highlight the selected item */
+    .radzen-autocomplete .rz-list-item-selected {
+        background-color: #007bff;
+        color: white;
+    }
+
+    /* Focus styling */
+    .radzen-autocomplete input:focus {
+        border-color: #007bff;
+        outline: none;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    /* Clear button styling */
+    .radzen-autocomplete .rz-clear-button {
+        color: #007bff;
+        font-size: 14px;
+    }
+
+        .radzen-autocomplete .rz-clear-button:hover {
+            color: #0056b3;
+        }
+
+    /* Style for individual dropdown items */
+    .radzen-autocomplete .rz-list-item {
+        padding: 8px;
+        font-size: 14px;
+        color: #333;
+    }
+
+    /* Style for the empty/no results message */
+    .radzen-autocomplete .rz-no-results {
+        padding: 8px;
+        color: #999;
+    }
+    /* Gray overlay */
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(128, 128, 128, 0.6); /* gray overlay */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    /* CSS Spinner */
+    .spinner {
+        border: 8px solid #e0e0e0; /* Light border */
+        border-top: 8px solid #007bff; /* Blue spinning section */
+        border-radius: 50%;
+        width: 70px;
+        height: 70px;
+        animation: spin 1s linear infinite;
+    }
+
+    /* Spinner animation */
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .saving-text {
+        margin-top: 15px;
+        font-size: 1.4rem;
+        color: white;
+        font-weight: bold;
+    }
+
+    .rz-fileupload-choose:not(.rz-state-disabled) {
+        background-color: transparent;
+        color: black;
+    }
+
+    .rz-button.rz-primary.rz-shade-default {
+        background-color: var(--rz-series-1);
+        color: var(--rz-on-primary);
+        padding: 5px 10px;
+    }
+
+    .btn-primary {
+        padding: 7px 15px;
+    }
+
+    .rz-grid-table thead th {
+        background-color: var(--rz-series-1);
+    }
+
+        .rz-grid-table thead th .rz-column-title, .rz-grid-filter-icon {
+            color: #fff;
+        }
+</style>

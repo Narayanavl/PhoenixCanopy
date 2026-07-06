@@ -1,0 +1,10 @@
+﻿@page "/DocManagement/Project/{ProjectId:int}"
+<PageTitle>Document Management</PageTitle>
+<h3>Document Management</h3>
+<hr />
+<FileManagerComponent ProjectId="@ProjectId"></FileManagerComponent>
+
+@code {
+    [Parameter]
+    public int ProjectId { get; set; }
+}

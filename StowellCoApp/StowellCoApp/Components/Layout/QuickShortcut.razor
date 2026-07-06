@@ -1,0 +1,241 @@
+﻿@* <div class="dropdown">
+    <!-- Trigger -->
+    <button class="icon-btn" title="More Apps"
+            @onclick="ToggleDropdown"
+            @onclick:stopPropagation>
+        <i class="bi bi-download"></i>
+    </button>
+@*     <a href="javascript:void(0)"
+       class="header-icon"
+       title="More apps"
+       @onclick="ToggleDropdown"
+       @onclick:stopPropagation>
+        <i class="fa fa-arrow-alt-circle-down"></i>
+    </a> *@
+
+    <!-- Dropdown -->
+    @* <div class="dropdown-menu dropdown-menu-animated w-auto h-auto @(IsOpen ? "show" : "")">
+        <div class="dropdown-header bg-trans-gradient d-flex justify-content-center align-items-center rounded-top">
+            <h4 class="m-0 text-center color-white">
+                Quick Shortcut
+                <small class="mb-0 opacity-80" style="color:white !important;">
+                    User Applications & Addons
+                </small>
+            </h4>
+        </div>
+
+        <div class="custom-scroll h-100">
+            <ul class="app-list">
+
+                <!-- Account -->
+                <li>
+                    <a href="https://myaccount.microsoft.com/"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="app-list-item hover-white">
+                        <span class="icon-stack">
+                            <i class="base-2 icon-stack-3x color-primary-400"></i>
+                            <i class="base-10 text-white icon-stack-1x"></i>
+                            <i class="ni md-profile color-primary-800 icon-stack-2x"></i>
+                        </span>
+                        <span class="app-list-name">Account</span>
+                    </a>
+                </li>
+
+                <!-- Outlook -->
+                <li>
+                    <a href="https://outlook.office.com/mail/"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="app-list-item hover-white"
+                       style="text-decoration:none !important;">
+                        <img src="https://react.proserv360.tech/assets/outlook-icon-ComIkiQ6.jpeg"
+                             style="width:50%" />
+                        <span class="app-list-name">Outlook</span>
+                    </a>
+                </li>
+
+                <!-- Calendar -->
+                <li>
+                    <a href="https://outlook.office.com/calendar/view/workweek/"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="app-list-item hover-white">
+                        <span class="icon-stack">
+                            <i class="base-18 icon-stack-3x color-info-700"></i>
+                            <span class="position-absolute pos-top pos-left pos-right color-white fs-md mt-2 fw-400">
+                                28
+                            </span>
+                        </span>
+                        <span class="app-list-name">Calendar</span>
+                    </a>
+                </li>
+
+                <!-- Support -->
+                <li>
+                    <a href="mailto:support@proserv360.tech"
+                       class="app-list-item hover-white">
+                        <span class="icon-stack">
+                            <i class="base-4 icon-stack-3x color-success-500"></i>
+                            <i class="fal fa-envelope icon-stack-1x text-white"></i>
+                        </span>
+                        <span class="app-list-name">Support</span>
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+    </div>
+</div>
+ *@ 
+  <button class="icon-btn" title="More Apps"
+        @onclick="ToggleDropdown" aria-label="More Apps"
+        @onclick:stopPropagation="true">
+    <i class="bi bi-download"></i>
+</button>
+<div class="quick-shortcut @(IsOpen ? "show" : "")">
+    <div class="quick-shortcut-header">
+        <h4>Quick Shortcut</h4>
+        <small>User Applications & Addons</small>
+        <i class=""></i>
+    </div>
+
+    <div class="quick-shortcut-body">
+        <ul class="quick-shortcut-list">
+            <li>
+                <a href="https://myaccount.microsoft.com/"
+                   target="_blank"
+                   class="quick-shortcut-item">
+                    <div class="quick-shortcut-icon">
+                        <i class="fa fa-user text-primary"></i>
+                    </div>
+                    <div class="quick-shortcut-label">Account</div>
+                </a>
+            </li>
+
+            <li>
+                <a href="https://outlook.office.com/mail/"
+                   target="_blank"
+                   class="quick-shortcut-item">
+                    <div class="quick-shortcut-icon">
+                        <img src="https://react.proserv360.tech/assets/outlook-icon-ComIkiQ6.jpeg" />
+                    </div>
+                    <div class="quick-shortcut-label">Outlook</div>
+                </a>
+            </li>
+
+            <li>
+                <a href="https://outlook.office.com/calendar/view/workweek/"
+                   target="_blank"
+                   class="quick-shortcut-item">
+                    <div class="quick-shortcut-icon">
+                        <i class="fa fa-calendar text-primary"></i>
+                    </div>
+                    <div class="quick-shortcut-label">Calendar</div>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+@code {
+    private bool IsOpen;
+
+    private void ToggleDropdown()
+    {
+        IsOpen = !IsOpen;
+    }
+}
+<style>
+    /* Card container */
+    .quick-shortcut {
+        width: 320px;
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        font-family: "Segoe UI", sans-serif;
+        z-index: 99999;
+        /* margin-top: 284px; */
+        position: absolute;
+        right: 3px;
+        top: 42px;
+        display:none;
+    }
+
+        .quick-shortcut.show{
+            display:block;
+        }
+
+    /* Header */
+    .quick-shortcut-header {
+        background: #4f80c0;
+        padding: 18px 12px;
+        text-align: center;
+        color: #fff;
+    }
+
+        .quick-shortcut-header h4 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .quick-shortcut-header small {
+            display: block;
+            margin-top: 4px;
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+    /* App grid */
+    .quick-shortcut-body {
+        padding: 20px 15px;
+    }
+
+    .quick-shortcut-list {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    /* App item */
+    .quick-shortcut-item {
+        text-align: center;
+        text-decoration: none;
+        color: #555;
+        transition: transform 0.15s ease, color 0.15s ease;
+    }
+
+        .quick-shortcut-item:hover {
+            transform: translateY(-3px);
+            color: #4f80c0;
+        }
+
+    /* Icon */
+    .quick-shortcut-icon {
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .quick-shortcut-icon i,
+        .quick-shortcut-icon img {
+            font-size: 42px;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+    /* Label */
+    .quick-shortcut-label {
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+</style>

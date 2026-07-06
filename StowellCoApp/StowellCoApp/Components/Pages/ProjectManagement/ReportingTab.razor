@@ -1,0 +1,293 @@
+﻿@inherits ReportingTabBase
+@using Radzen
+@using Radzen.Blazor
+@using System.Globalization
+
+@if (_currencycostModel == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+
+    <form method="get">
+        <div class="form-group  row">
+            <label class="col-sm-1 col-form-label">Job Id</label>
+            <div class="col-sm-3"><input class="form-control" type="text" value="@_currencycostModel.SelectedJobId" readonly></div><label class="col-sm-1 col-form-label">Job Name</label>
+            <div class="col-sm-3"><input class="form-control" type="text" value="@_currencycostModel.SelectedJobName" readonly></div>
+        </div>
+        <h2>Reporting</h2>
+        <div class="hr-line-dashed"></div>
+        <div class="row mb-12">
+            <div class="col-md-5">
+                <div class="card">
+                    <div class="card-header">
+                        <h4> Cost Summary</h4>
+                    </div>
+                    <div class="card-body d-flex">
+
+
+                        <div style="position: relative; width: 150px; height: 220px;margin-top:30px">
+                            <a target="_blank" href="/CostCodeSummary/@ProjectId">
+                            <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Secondary" @bind-Value="@value" ShowValue="true" AriaLabel="Primary progress" Unit="%" Size="ProgressBarCircularSize.Large" />
+                            </a>
+
+
+                        </div>
+                        <div class="ms-6">
+                            <h5>Current Cost Summary - Overall</h5>
+                            <table class="table table-borderless table-sm">
+                                <tbody>
+                                    <tr>
+                                        <td>Budget + Change</td>
+
+                                        <td>@_currencycostModel.CostCodeSummaryModel?.SumOfBudgetAndChanges.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</td>
+                                    </tr>
+                                    <tr>
+                                        <td>To Date</td>
+                                        <td>@_currencycostModel.CostCodeSummaryModel?.SumOfToDate.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</td>
+                                    </tr>
+                                    <tr>
+                                        <td>This Period</td>
+                                        <td>@_currencycostModel.CostCodeSummaryModel?.SumOfThisPeriod.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Remaining</td>
+                                        <td>@_currencycostModel.CostCodeSummaryModel?.SumOfRemaining.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-7">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Cash Flow Summary</h4>
+                    </div>
+                    <div class="card-body d-flex">
+                        <div class="col-md-6" style="padding:0 !important;">
+                            <a href="/CashFlowReport/@ProjectId" target="_blank">
+                            <RadzenStack class="rz-p-0 rz-p-md-6 rz-p-lg-12" AlignItems="AlignItems.Center">
+
+                                <!-- Toggle Data Labels -->
+                                @*   <RadzenCard Variant="Variant.Outlined" Style="width: 100%;">
+                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Wrap="FlexWrap.Wrap">
+                                    <RadzenCheckBox @bind-Value="@showDataLabels" Name="dataLabels"></RadzenCheckBox>
+                                    <RadzenLabel Text="Show Data Labels" Component="dataLabels" />
+                                </RadzenStack>
+                            </RadzenCard> *@
+                           
+                                <!-- Pie Chart -->
+                                <RadzenStack Style="width: 100%; max-width: 600px; margin-top: 1rem;">
+                                    <RadzenChart>
+                                        @*  SeriesClick=@OnSeriesClick> *@
+                                        @* <Radzen.Blazor.Re Position="Top" /> *@
+                                        <!-- Enable tooltips -->
+                                        <RadzenChartTooltipOptions Visible="true" />
+                                        <RadzenPieSeries Data="@revenue"
+                                                         Title="Revenue"
+                                                         CategoryProperty="Quarter"
+                                                         ValueProperty="Revenue">
+                                            <TooltipTemplate Context="data">
+                                                Revenue for <span>@data.Quarter</span> 2020: <strong>@data.Revenue.ToString("C0", CultureInfo.CreateSpecificCulture("en-US"))</strong>
+                                            </TooltipTemplate>
+
+
+                                        </RadzenPieSeries>
+                                    </RadzenChart>
+                                </RadzenStack>
+
+                            </RadzenStack>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Cash Flow Summary</h5>
+                            <table class="table table-borderless table-sm">
+                                <tbody>
+                                    <tr>
+                                        <td>Cash Collected</td>
+
+                                        <td>@_currencycostModel.CashFlowRecord.CashCollected.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Cash Paid</td>
+                                        <td>@_currencycostModel.CashFlowRecord.CashPaid.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Net Cash</td>
+                                        <td>@_currencycostModel.CashFlowRecord.NetCash.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2>Project Managment</h2>
+        <div class="hr-line-dashed"></div>
+        <div class="row">
+            <div class="col-sm-2 text-center  mt-6">
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0"
+                     viewBox="0 0 576 512" height="70" width="70" xmlns="http://www.w3.org/2000/svg"
+                     style="color: #000;">
+                    <path d="M64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-19.3c-2.7 1.1-5.4 2-8.2 2.7l-60.1 15c-3 .7-6 1.2-9 1.4c-.9 .1-1.8 .2-2.7 .2l-64 0c-6.1 0-11.6-3.4-14.3-8.8l-8.8-17.7c-1.7-3.4-5.1-5.5-8.8-5.5s-7.2 2.1-8.8 5.5l-8.8 17.7c-2.9 5.9-9.2 9.4-15.7 8.8s-12.1-5.1-13.9-11.3L144 381l-9.8 32.8c-6.1 20.3-24.8 34.2-46 34.2L80 448c-8.8 0-16-7.2-16-16s7.2-16 16-16l8.2 0c7.1 0 13.3-4.6 15.3-11.4l14.9-49.5c3.4-11.3 13.8-19.1 25.6-19.1s22.2 7.8 25.6 19.1l11.6 38.6c7.4-6.2 16.8-9.7 26.8-9.7c15.9 0 30.4 9 37.5 23.2l4.4 8.8 8.9 0c-3.1-8.8-3.7-18.4-1.4-27.8l15-60.1c2.8-11.3 8.6-21.5 16.8-29.7L384 203.6l0-43.6-128 0c-17.7 0-32-14.3-32-32L224 0 64 0zM256 0l0 128 128 0L256 0zM549.8 139.7c-15.6-15.6-40.9-15.6-56.6 0l-29.4 29.4 71 71 29.4-29.4c15.6-15.6 15.6-40.9 0-56.6l-14.4-14.4zM311.9 321c-4.1 4.1-7 9.2-8.4 14.9l-15 60.1c-1.4 5.5 .2 11.2 4.2 15.2s9.7 5.6 15.2 4.2l60.1-15c5.6-1.4 10.8-4.3 14.9-8.4L512.1 262.7l-71-71L311.9 321z">
+                    </path>
+                </svg> <br><br><a style="color:#000" href="/JobSummary/@ProjectId" target="_blank">Job Summary Report</a>
+            </div>
+        </div>
+
+    </form>
+}
+
+
+
+
+
+@* @code {
+    IEnumerable<ColorScheme> colorSchemes = Enum.GetValues(typeof(ColorScheme)).Cast<ColorScheme>();
+    ColorScheme colorScheme = ColorScheme.Palette;
+
+    EventConsole console;
+    bool showDataLabels = true;
+
+    void OnSeriesClick(SeriesClickEventArgs args)
+    {
+       // console.Log(args);
+    }
+
+    class DataItem
+    {
+        public string Quarter { get; set; }
+        public decimal Revenue { get; set; }
+    }
+
+
+
+} *@
+<style>
+    /* ------------------------------
+               GENERAL FORM LAYOUT
+            --------------------------------*/
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+        .form-group.row {
+            align-items: center;
+        }
+
+    /* Make labels cleaner */
+    .col-form-label {
+        font-weight: 600;
+        color: #777;
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+    /* Read-only field styling */
+    .form-control[readonly] {
+        background-color: #f7f7f7;
+        opacity: 1;
+        border-color: #dcdcdc;
+        cursor: not-allowed;
+    }
+
+    /* Optional hover effect for editable form controls */
+    .form-control:not([readonly]):hover {
+        border-color: #999;
+    }
+
+    /* Add spacing between inline form groups */
+    .form-group.row > div {
+        margin-bottom: 8px;
+    }
+
+    /* ------------------------------
+               SECTION HEADERS & DIVIDERS
+            --------------------------------*/
+
+    h2 {
+        font-weight: 700;
+        color: #2c3e50;
+        margin-top: 20px;
+    }
+
+    .hr-line-dashed {
+        border-top: 1px dashed #c7c7c7;
+        margin: 15px 0 25px 0;
+    }
+
+    /* ------------------------------
+               TABLE STYLING
+            --------------------------------*/
+
+    .table {
+        background-color: #fff;
+        margin-top: 10px;
+    }
+
+        .table th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .table td,
+        .table th {
+            border-color: #dcdcdc;
+            vertical-align: middle;
+            padding: 8px 12px;
+        }
+
+    .table-bordered tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    /* ------------------------------
+               BUTTONS (optional)
+            --------------------------------*/
+
+    .btn-primary {
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 4px;
+    }
+
+    .hide {
+        display: none !important;
+    }
+
+    .rz-stack {
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0;
+    }
+
+    .rz-chart {
+        margin-top: -50px;
+    }
+    /* ------------------------------
+               RESPONSIVE FIXES
+            --------------------------------*/
+
+    @@media (max-width: 768px) {
+        .col-form-label {
+            text-align: left !important;
+            padding-top: 0;
+            padding-bottom: 2px;
+        }
+
+        .form-group.row > div {
+            margin-bottom: 12px;
+        }
+    }
+
+    .rz-legend-item{
+        color:#000 !important;
+    }
+</style>

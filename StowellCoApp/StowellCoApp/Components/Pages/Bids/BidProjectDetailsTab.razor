@@ -1,0 +1,464 @@
+﻿@inherits BidProjectDetailsTabBase
+@using System.Globalization
+@using Radzen
+@using Radzen.Blazor
+@using StowellCoApp.DTO
+@using Radzen.Blazor.Rendering
+@using StowellCoApp.Components.Pages.ProjectManagement
+@using StowellCoApp.Services
+@* @inject ProjectOverviewService projectOverView *@
+@inject NavigationManager Nav
+@if (_bidRecords == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    @if (!IsClosed)
+    {
+        <div class="btncustom d-flex gap-2 ms-auto" style="margin-top: -59px;margin-right: -13px;text-align: right;float: right;">
+            <button class="btn btn-warning" @onclick="SaveBidData">
+                Save Bid
+            </button>
+
+            <button class="btn btn-danger" @onclick="GetBidLost">
+                Bid Lost
+            </button>
+
+            <button class="btn btn-success" @onclick="GetBidWon">
+                Bid Won
+            </button>
+        </div>
+    }
+    <form method="get">
+        <div class="form-group  row">
+            <label class="col-sm-1 col-form-label">Bid Id</label>
+            <div class="col-sm-3"><input class="form-control" type="text" readonly="@IsClosed" @bind="@_bidRecords.DisplayBidID"></div>
+            <label class="col-sm-1 col-form-label">Bid Name</label>
+            <div class="col-sm-3"><input class="form-control" type="text" @bind="@_bidRecords.BidName" readonly="@IsClosed"></div>
+            <div class="col-sm-2">
+                <a href="/Bids/Documents/@_bidRecords.DisplayBidID">
+                    <i class="fas fa-folder"></i> <span>Bid Document Library</span>
+                </a>
+
+            </div>
+          
+        </div>
+             <div class="form-group row">
+            <div class="col-sm-8">
+      <div class="d-flex justify-content-between align-items-center">
+                <h2 >Bid Access</h2>
+                <div class="d-flex justify-content-between align-items-center">
+                    <RadzenButton  @ref="button" Text="Add Access" Disabled="@IsClosed"
+                                      class="btn btn-primary btn-sm" Click="@(args => popup.ToggleAsync(button.Element))" />
+                </div>
+                 
+            </div>
+        <Popup @ref="popup" Lazy="true" class="my-popup">
+            <div role="dialog" aria-modal="true" class="fade modal show" tabindex="-1" id="addBids" style="display:block">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <div class="modal-title h4">Add Bids</div>
+                            <button type="button" class="close" @onclick="CloseClick" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Role</th>
+                                            <th>Employees</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+
+                                        <tr>
+                                            <td>
+                                                        <select class="form-control medium-input" @bind="SelectedRoleName">
+                                                    <option value="">Select Role</option>
+                                                    <option>Bid Manager</option>
+                                                            <option>Estimator</option>
+                                                </select>
+
+                                            </td>
+                                                    <td>
+                                                        <RadzenDropDown TValue="string"
+                                                                        Data="@_employeeClientdroplist"
+                                                                        TextProperty="DisplayName"
+                                                                        ValueProperty="DisplayName"
+                                                                        Placeholder="Select Employee"
+                                                                        Style="width:100%"
+                                                                        @bind-Value="SelectedEmployeeName" />
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <RadzenButton Text="Close" class="btn btn-secondary btn-sm"
+                                                  Style="margin-right:5px" Click="CloseClick" />
+                            <RadzenButton Text=" Save Changes" class="btn btn-primary btn-sm"
+                                          Click="SaveBidAccessClick" />
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Popup>
+
+
+                <div class="hr-line-dashed"></div>
+
+                <RadzenDataGrid @ref="bidAccessSummaryGrid"
+                                Data="@_bidAccessSummary"
+                                TItem="BidAccessSummary"
+                                ColumnWidth="200px">
+
+                    <Columns>
+                        @if (!IsClosed)
+                        {
+                            <RadzenDataGridColumn TItem="BidAccessSummary" Title="Action" Filterable="false" Sortable="false">
+                                <Template Context="data">
+                                    <RadzenButton Icon="delete"
+                                    ButtonStyle="ButtonStyle.Danger"
+                                    Size="ButtonSize.Small" Click="@(() => DeleteBidAccessRow(data))" />
+                                </Template>
+                            </RadzenDataGridColumn>
+                        }
+                        <RadzenDataGridColumn TItem="BidAccessSummary" Title="Role">
+                            <Template Context="data">
+                                @data.RoleName
+                            </Template>
+                        </RadzenDataGridColumn>
+
+                        <RadzenDataGridColumn TItem="BidAccessSummary"
+                                              Property="EmployeeName"
+                                              Title="Employee" />
+                    </Columns>
+                </RadzenDataGrid>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-sm-6">
+                <h2>Property Address</h2>
+                <div class="hr-line-dashed"></div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label">Jobsite</label>
+                    <div class="col-sm-6"><input class="form-control" placeholder="Enter jobsite" id="txtJobSite" type="text" @bind="@_bidRecords.Jobsite" readonly="@IsClosed"></div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">Address</label>
+                    <div class="col-sm-6"><input class="form-control" placeholder="Enter address" type="text" id="txtJobSiteAddress" @bind="@_bidRecords.Address1" readonly="@IsClosed"></div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">Address 2</label>
+                    <div class="col-sm-6"><input class="form-control" placeholder="Enter address 2" type="text" id="txtJobSiteAddress2" @bind="@_bidRecords.Address2" readonly="@IsClosed"></div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">City</label>
+                    <div class="col-sm-6"><input class="form-control" placeholder="Enter city" type="text" id="txtJobSiteCity" @bind="@_bidRecords.City" readonly="@IsClosed"></div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">State</label>
+                    <div class="col-sm-6"><input class="form-control" placeholder="Enter state" type="text" id="txtJobSiteState" @bind="@_bidRecords.State" readonly="@IsClosed"></div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">Sales Tax District</label>
+                    <div class="col-sm-6">
+                        <input class="form-control" placeholder="Enter sales tax district"
+                               type="text" id="txtJobSiteSalesTaxDistrict" @bind="@_bidRecords.SalesTaxDistrict" readonly="@IsClosed">
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <h2>General Contractor</h2>
+                <div class="hr-line-dashed"></div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">Client</label>
+                    <div class="col-sm-6">
+
+                        <RadzenDropDown TValue="string"
+                                        Data="@_contractClientdroplist"
+                                        TextProperty="Name"
+                                        ValueProperty="Name"
+                                        Placeholder="Select Client"
+                                        Style="width:100%"
+                                        @bind-Value="selectedClientName"
+                                        Disabled="@IsClosed"
+                                        Change="@(async (args) => await OnClientChange(args?.ToString()))" />
+                    
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">Address</label>
+                    <div class="col-sm-6"><input class="form-control" placeholder="Enter address" type="text" id="txtClientAddress" @bind="@_bidRecords.GC_Address1" readonly></div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">Address 2</label>
+                    <div class="col-sm-6"><input class="form-control" placeholder="Enter address 2" type="text" id="txtClientAddress2" @bind="@_bidRecords.GC_Address2" readonly></div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">City</label>
+                    <div class="col-sm-6"><input class="form-control" placeholder="Enter city" type="text" id="txtClientCity" @bind="@_bidRecords.GC_City" readonly></div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">State</label>
+                    <div class="col-sm-6"><input class="form-control" placeholder="Enter state" type="text" id="txtClientState" @bind="@_bidRecords.GC_State" readonly></div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">Sales Tax District</label>
+                    <div class="col-sm-6">
+                        <input class="form-control" placeholder="Enter sales tax district"
+                               type="text" readonly="@IsClosed" @bind="@_bidRecords.GC_SalesTaxDistrict">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <h2>Project Information</h2>
+        <div class=" row">
+
+            <div class="hr-line-dashed"></div>
+            <div class="col-sm-6">
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">
+                        Insurance
+                        Type
+                    </label>
+                    <div class="col-sm-6">
+                        <select class="form-control" id="ddlInsuranceType" disabled="@IsClosed" @bind="_bidRecords.InsuranceType">
+                            <option value="0">Select insurance type</option>
+                            <option value="1">OCIP</option>
+                            <option value="2">CCIP</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">Bonded</label>
+                    <div class="col-sm-6">
+                        <select class="form-control" id="ddlBonded" disabled="@IsClosed" @bind="_bidRecords.Bonded">
+                            <option value="">Select</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">Tax Exempt</label>
+                    <div class="col-sm-6">
+                        <select class="form-control" id="ddlTaxExempt" disabled="@IsClosed" @bind="_bidRecords.TaxExempt">
+                            <option value="0">Select</option>
+                            <option>Yes</option>
+                            <option>No</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">
+                        Invoice
+                        Submittal
+                    </label>
+                    <div class="col-sm-6">
+                        <select class="form-control" id="ddlInvoiceSubmittal" disabled="@IsClosed" @bind="@_bidRecords.InvoiceSubmittal">
+                            <option value="0">Select</option>
+                            <option value="1">Email</option>
+                            <option value="2">Portal</option>
+                            <option value="3">Mail</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">
+                        Certified
+                        Payroll
+                    </label>
+                    <div class="col-sm-6">
+                        <select class="form-control" id="ddlCertifiedPayroll" disabled="@IsClosed" @bind="_bidRecords.CertifiedPayroll">
+                            <option value="0">Select</option>
+                            <option value="1">Yes</option>
+                            <option value="2">No</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">
+                        Net Terms
+                        Date
+                    </label>
+                    <div class="col-sm-6">
+                        @* <input class="form-control" type="date" id="txtNetTermsDate" data-date-format="MM/DD/YYYY" readonly> *@
+                        <RadzenDatePicker TValue="DateTime?"
+                                          @bind-Value="_bidRecords.NetTermsDate"
+                                          DateFormat="MM/dd/yyyy"
+                                          Placeholder="Select date"
+                                          Style="width:100%" Culture="@UsCulture" Disabled="@IsClosed" />
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3  col-form-label">Retainage %</label>
+                    <div class="col-sm-6">
+                        <input class="form-control"
+                               placeholder="Enter retainage percentage" type="number" id="txtRetainage" readonly="@IsClosed" @bind-value="_bidRecords.RetainagePercentage">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+}
+<style>
+    /* ------------------------------
+                   GENERAL FORM LAYOUT
+                --------------------------------*/
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+        .form-group.row {
+            align-items: center;
+        }
+
+    /* Make labels cleaner */
+    .col-form-label {
+        font-weight: 600;
+        color: #777;
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+    /* Read-only field styling */
+    .form-control[readonly] {
+        background-color: #f7f7f7;
+        opacity: 1;
+        border-color: #dcdcdc;
+        cursor: not-allowed;
+    }
+
+    /* Optional hover effect for editable form controls */
+    .form-control:not([readonly]):hover {
+        border-color: #999;
+    }
+
+    /* Add spacing between inline form groups */
+    .form-group.row > div {
+        margin-bottom: 8px;
+    }
+
+    /* ------------------------------
+                   SECTION HEADERS & DIVIDERS
+                --------------------------------*/
+
+    h2 {
+        font-weight: 700;
+        color: #2c3e50;
+        margin-top: 20px;
+    }
+
+    .hr-line-dashed {
+        border-top: 1px dashed #c7c7c7;
+        margin: 15px 0 25px 0;
+    }
+
+    /* ------------------------------
+                   TABLE STYLING
+                --------------------------------*/
+
+    .table {
+        background-color: #fff;
+        margin-top: 10px;
+    }
+
+        .table th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .table td,
+        .table th {
+            border-color: #dcdcdc;
+            vertical-align: middle;
+            padding: 8px 12px;
+        }
+
+    .table-bordered tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    /* ------------------------------
+                   BUTTONS (optional)
+                --------------------------------*/
+
+    .btn-primary {
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 4px;
+    }
+
+    .hide {
+        display: none !important;
+    }
+
+    /* ------------------------------
+                   RESPONSIVE FIXES
+                --------------------------------*/
+
+    @@media (max-width: 768px) {
+        .col-form-label {
+            text-align: left !important;
+            padding-top: 0;
+            padding-bottom: 2px;
+        }
+
+        .form-group.row > div {
+            margin-bottom: 12px;
+        }
+    }
+
+    table th {
+        background-color: var(--rz-series-1);
+        color: #fff;
+    }
+
+    .rz-grid-table thead th {
+        background-color: var(--rz-series-1);
+    }
+
+        .rz-grid-table thead th .rz-column-title, .rz-grid-filter-icon {
+            color: #fff;
+        }
+
+    .btn-primary {
+        color: #fff !important;
+        background-color: var(--rz-series-1) !important;
+        border-color: var(--rz-series-1) !important;
+        font-weight: 600 !important;
+        padding: 6px 14px !important;
+        border-radius: 4px !important;
+    }
+
+    .btn-secondary {
+        color: #fff !important;
+        background-color: gray !important;
+        border-color: gray !important;
+        font-weight: 600 !important;
+        padding: 6px 14px !important;
+        border-radius: 4px !important;
+    }
+
+    .rz-button.rz-primary.rz-shade-default {
+        background-color: var(--rz-series-1);
+        color: var(--rz-on-primary);
+        padding: 5px 10px;
+    }
+
+    .btn-primary, .btn-danger {
+        padding: 7px 15px;
+    }
+</style>

@@ -1,0 +1,354 @@
+﻿@using System.Globalization
+@using Radzen
+@using Radzen.Blazor
+@using Radzen.Blazor.Rendering
+@inject NavigationManager Nav
+@inherits Components.Pages.Bids.BidQueueOverviewTabBase
+@using StowellCoApp.DTO
+@if (_bidRecords == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    @if (Type != "Closed")
+    {
+        <div class="btncustom d-flex gap-2 ms-auto" style="margin-top: -59px;
+        margin-right: -13px;
+        text-align: right;
+
+        float: right;">
+            <button class="btn btn-warning" @onclick="SaveBidData">
+                Save Bid
+            </button>
+
+            <button class="btn btn-danger" @onclick="GetBidLost">
+                Bid Lost
+            </button>
+
+            <button class="btn btn-success" @onclick="GetBidWon">
+                Bid Won
+            </button>
+        </div>
+    }
+    <form method="get">
+        <div class="form-group  row">
+            <label class="col-sm-1 col-form-label">Bid Id</label>
+            <div class="col-sm-3"><input class="form-control" type="text" readonly @bind="@_bidRecords.DisplayBidID"></div>
+            <label class="col-sm-1 col-form-label">Bid Name</label>
+            <div class="col-sm-3"><input class="form-control" type="text" @bind="@_bidRecords.BidName" readonly="@IsClosed"></div>
+            <div class="col-sm-2">
+                <a href="/Bids/Documents/@_bidRecords.DisplayBidID">
+                    <i class="fas fa-folder"></i> <span>Bid Document Library</span>
+                </a>
+
+            </div>
+            @*  <div class="col-sm-1">
+                <a href="/Estimation/EditBidForm/" style="color:#FFF;"><button class="btn btn-primary btn-sm ms-2" type="button">Update</button></a>
+            </div> *@
+        </div>
+        <h2>Bid Overview</h2>
+        <div class="hr-line-dashed"></div>
+        <div class="form-group row">
+            <label class="col-sm-1 col-form-label">Division</label>
+            <div class="col-sm-3">
+                <select id="ddlDivision" class="form-control" disabled="@IsClosed" @bind="_bidRecords.Division">
+                    <option>Select Division</option>
+                    <option>Orlando</option>
+                    <option>Naples</option>
+                    <option>Jacksonville</option>
+                    <option>Tampa</option>
+                    <option>Texas</option>
+                </select>
+            </div>
+            <label class="col-sm-1 col-form-label">Bid Phase</label>
+            <div class="col-sm-3">
+                <RadzenDropDown TValue="string"
+                                Data="@_phases"
+                                Disabled="@IsClosed"
+                                Placeholder="None"
+                                Style="width:100%"
+                                AllowClear="true"
+                                @bind-Value="@_bidRecords.BidPhase" />
+                @* <select class="form-control"
+                        disabled="@IsClosed"
+                        @bind="_bidRecords.BidPhase">
+
+                    
+                        <option value="@_bidRecords.BidPhase">
+                            @_bidRecords.BidPhase
+                        </option>
+                   
+                </select> *@
+            </div><label class="col-sm-1 col-form-label">Bid Status</label>
+            <div class="col-sm-3">
+                <RadzenDropDown TValue="string"
+                                Data="@_bidStatus"
+                                Disabled="@IsClosed"
+                                Style="width:100%"
+                                AllowClear="true"
+                                @bind-Value="@_bidRecords.BidStatus" />
+               
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-1 col-form-label">Address</label>
+            <div class="col-sm-5"><input class="form-control" placeholder="Enter address" type="text" id="txtJobSiteAddress" readonly="@IsClosed" @bind="@_bidRecords.Address1"></div>
+            <label class="col-sm-1 col-form-label">Address 2</label>
+            <div class="col-sm-5"><input class="form-control" type="text" id="txtEstAddress2" readonly="@IsClosed" @bind="@_bidRecords.Address2"></div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-1 col-form-label">City</label>
+            <div class="col-sm-3"><input class="form-control" placeholder="Enter city" type="text" id="txtJobSiteCity" readonly="@IsClosed" @bind="@_bidRecords.City"></div><label class="col-sm-1 col-form-label">State</label>
+            <div class="col-sm-3"><input class="form-control" placeholder="Enter state" type="text" id="txtJobSiteState" @bind="@_bidRecords.State" readonly="@IsClosed"></div><label class="col-sm-1 col-form-label">Zip</label>
+            <div class="col-sm-3"><input class="form-control" placeholder="Enter zip" type="text" readonly="@IsClosed" @bind="@_bidRecords.ZipCode"></div>
+        </div>
+        <br />
+        <div class="form-group row hide">
+            <button class="btn btn-primary col-lg-1 mx-2" type="button">Save</button>
+            <button class="btn btn-primary col-lg-1 mx-2" type="button">Cancel</button>
+        </div><br /><br />
+        <div class="form-group row" >
+            <div class="col-sm-8">
+                <div class="d-flex justify-content-between align-items-center w-100">
+                <h2 style="margin-left:15px">Bids</h2>
+                  
+                    <RadzenButton  @ref="button" Text="Add Bid" Disabled="@IsClosed"
+                    class="btn btn-primary btn-sm" Click="@(args => popup.ToggleAsync(button.Element))"/>
+                </div>
+                 <Popup @ref="popup" Lazy="true" class="my-popup">
+                                        <div role="dialog" aria-modal="true" class="fade modal show" tabindex="-1" id="addBids" style="display:block">
+                                            <div class="modal-dialog modal-lg">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <div class="modal-title h4">Add Bids</div>
+                                        <button type="button" class="close" @onclick="CloseClick" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="table-responsive">
+                                                            <table class="table table-bordered">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>Bid Date</th>
+                                                                        <th>Bid Amount</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                 @*    <tr>
+                                                                        <td> <InputDate @bind-Value="BidDate" class="form-control" /></td>
+                                                                        <td>
+                                                                            <InputNumber @bind-Value="BidAmount" class="form-control" />
+                                                                        </td>
+                                                                    </tr> *@
+                                                                    <tr>
+                                                                        <td>
+                                                        <RadzenDatePicker @bind-Value="BidDate" DateFormat="MM/dd/yyyy" Culture="@UsCulture" />
+                                                                                             
+                                                                        </td>
+                                                                        <td>
+                                                                            <RadzenNumeric @bind-Value="BidAmount"
+                                                                                           ShowUpDown="false"
+                                                                                           TValue="decimal?"
+                                                                                           Format="C2"
+                                                                                           Culture="@UsCulture" />
+                                                                            @* <InputNumber @bind-Value="BidAmount" class="form-control" /> *@
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <RadzenButton Text="Close" class="btn btn-secondary btn-sm"
+                                                      Click="CloseClick" Style="margin-right:5px" />
+                                                        <RadzenButton Text=" Save Changes" class="btn btn-primary btn-sm"
+                                                  Click="SaveBidsClick" />
+                                                       @*  <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="CloseClick">Close</button> *@
+                                                      @*   <button type="button" class="btn btn-primary" id="btnSaveBid" Click="SaveBidsClick">
+                                                            Save Changes
+                                                        </button> *@
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Popup>
+           
+       
+                <div class="hr-line-dashed"></div>
+
+                <RadzenDataGrid @ref="bidAmountsGrid"
+                                Data="@_bidAmounts"
+                                TItem="BidAmounts"
+                                ColumnWidth="200px">
+
+                    <Columns>
+                        @if (!IsClosed)
+                        {
+                            <RadzenDataGridColumn TItem="BidAmounts" Title="Action" Filterable="false" Sortable="false">
+                                <Template Context="data">
+
+                                    <RadzenButton Icon="delete"
+                                    ButtonStyle="ButtonStyle.Danger" 
+                                    Size="ButtonSize.Small" Click="@(() => DeleteBidAmountRow(data))" />
+
+                                </Template>
+                            </RadzenDataGridColumn>
+                        }
+                        <RadzenDataGridColumn TItem="BidAmounts" Title="Bid Date">
+                            <Template Context="data">
+                                @data.BidDate?.ToString("MM/dd/yyyy", UsCulture)
+                            </Template>
+                        </RadzenDataGridColumn>
+
+                        <RadzenDataGridColumn TItem="BidAmounts"
+                                              Property="BidAmount"
+                                              Title="Bid Amount" FormatString="{0:C2}" />
+                    </Columns>
+                </RadzenDataGrid>
+
+
+               
+            </div>
+        </div>
+    </form>
+}
+<style>
+    /* ------------------------------
+           GENERAL FORM LAYOUT
+        --------------------------------*/
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+        .form-group.row {
+            align-items: center;
+        }
+
+    /* Make labels cleaner */
+    .col-form-label {
+        font-weight: 600;
+        color: #777;
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+    /* Read-only field styling */
+    .form-control[readonly] {
+        background-color: #f7f7f7;
+        opacity: 1;
+        border-color: #dcdcdc;
+        cursor: not-allowed;
+    }
+
+    /* Optional hover effect for editable form controls */
+    .form-control:not([readonly]):hover {
+        border-color: #999;
+    }
+
+    /* Add spacing between inline form groups */
+    .form-group.row > div {
+        margin-bottom: 8px;
+    }
+
+    /* ------------------------------
+           SECTION HEADERS & DIVIDERS
+        --------------------------------*/
+
+    h2 {
+        font-weight: 700;
+        color: #2c3e50;
+        margin-top: 20px;
+    }
+
+    .hr-line-dashed {
+        border-top: 1px dashed #c7c7c7;
+        margin: 15px 0 25px 0;
+    }
+
+    /* ------------------------------
+           TABLE STYLING
+        --------------------------------*/
+
+    .table {
+        background-color: #fff;
+        margin-top: 10px;
+    }
+
+        .table th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .table td,
+        .table th {
+            border-color: #dcdcdc;
+            vertical-align: middle;
+            padding: 8px 12px;
+        }
+
+    .table-bordered tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    /* ------------------------------
+           BUTTONS (optional)
+        --------------------------------*/
+
+    .btn-primary {
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 4px;
+    }
+
+    .hide {
+        display: none !important;
+    }
+
+    /* ------------------------------
+           RESPONSIVE FIXES
+        --------------------------------*/
+
+    @@media (max-width: 768px) {
+        .col-form-label {
+            text-align: left !important;
+            padding-top: 0;
+            padding-bottom: 2px;
+        }
+
+        .form-group.row > div {
+            margin-bottom: 12px;
+        }
+    }
+
+    .btn-primary {
+        color: #fff !important;
+        background-color: var(--rz-series-1) !important;
+        border-color: var(--rz-series-1) !important;
+        font-weight: 600 !important;
+        padding: 6px 14px !important;
+        border-radius: 4px !important;
+    }
+
+    .btn-secondary {
+        color: #fff !important;
+        background-color: gray !important;
+        border-color: gray !important;
+        font-weight: 600 !important;
+        padding: 6px 14px !important;
+        border-radius: 4px !important;
+    }
+
+    .rz-button.rz-primary.rz-shade-default {
+        background-color: var(--rz-series-1);
+        color: var(--rz-on-primary);
+        padding: 5px 10px;
+    }
+
+    .btn-primary, .btn-danger {
+        padding: 7px 15px;
+    }
+</style>

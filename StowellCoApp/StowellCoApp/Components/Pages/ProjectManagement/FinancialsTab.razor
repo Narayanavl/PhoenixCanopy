@@ -1,0 +1,274 @@
+﻿@inherits FinancialsTabBase
+@if (_currencycostModel == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <form method="get">
+        <div class="form-group  row">
+            <label class="col-sm-1 col-form-label">Job Id</label>
+            <div class="col-sm-3"><input class="form-control" type="text" value="@_currencycostModel.SelectedJobId" readonly></div><label class="col-sm-1 col-form-label">Job Name</label>
+            <div class="col-sm-3"><input class="form-control" type="text" value="@_currencycostModel.SelectedJobName" readonly></div>
+        </div>
+        <br />
+        <div class="form-group row">
+            <div class="col-sm-2">
+                <a href="/CostCodeSummary/@_currencycostModel.SelectedJobId">
+                    <img src="/images/pie-chart.png" style="width:100%" /> 
+                </a>
+            </div>
+            <div class="col-sm-6">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th style="background-color:#f1f1f1;color:#333">Total Budget</th>
+                            <td class="mynum">
+                                @(
+                                decimal.TryParse(_currencycostModel.BudgetPayment?.Budget, out var budgetValue)
+                                                    ? budgetValue.ToString("C2", System.Globalization.CultureInfo.GetCultureInfo("en-US"))
+                                                    : "$0.00"
+                                )
+                        </td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>Total Paid</th>
+                            <td class="mynum">
+                                @(
+                                                            decimal.TryParse(_currencycostModel.BudgetPayment?.Paid, out var budgetValue1)
+                                                            ? budgetValue1.ToString("C2", System.Globalization.CultureInfo.GetCultureInfo("en-US"))
+                                                            : "$0.00"
+                                                            )
+                        </td>
+                        </tr>
+                        <tr>
+                            <th>Total Remaining</th>
+                            <td class="mynum">
+                                @(
+                                                            decimal.TryParse(_currencycostModel.BudgetPayment?.Balance, out var budgetValue2)
+                                                            ? budgetValue2.ToString("C2", System.Globalization.CultureInfo.GetCultureInfo("en-US"))
+                                                            : "$0.00"
+                                                            )
+                        </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-sm-4 pt-6">
+                <button class="btn btn-primary btn-sm" type="submit">
+                <NavLink href="@($"/ProjectBudgetConfiguration/CreateBudget/{ProjectId}")" style="color: #FFF;">
+                    Create/Modify Budget
+                </NavLink>
+                </button>
+            </div>
+        </div>
+        <h2>Invoicing</h2>
+        <div class="hr-line-dashed"></div>
+        <div class="form-group row">
+            <div class="col-sm-10">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Date</th>
+                            <th>Name</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-sm-2 pt-6">
+                <button class="btn btn-primary btn-sm" type="submit">Upload Invoice</button>
+            </div>
+        </div>
+        <h2>Change Orders</h2>
+        <div class="hr-line-dashed"></div>
+        <div class="form-group row">
+            <div class="col-sm-10">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Date</th>
+                            <th>Name</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-sm-2 pt-6"><button class="btn btn-primary btn-sm" type="submit">Upload CO</button></div>
+        </div>
+        <h2>Purchase Orders</h2>
+        <div class="hr-line-dashed"></div>
+        <div class="form-group row">
+            <div class="col-sm-10">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Date</th>
+                            <th>Name</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-sm-2 pt-6"><button class="btn btn-primary btn-sm" type="submit">Upload PO</button></div>
+        </div>
+    </form>
+}
+<style>
+
+    /* ------------------------------
+           GENERAL FORM LAYOUT
+        --------------------------------*/
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group.row {
+        align-items: center;
+    }
+
+    /* Make labels cleaner */
+    .col-form-label {
+        font-weight: 600;
+        color: #777;
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+    /* Read-only field styling */
+    .form-control[readonly] {
+        background-color: #f7f7f7;
+        opacity: 1;
+        border-color: #dcdcdc;
+        cursor: not-allowed;
+    }
+
+    /* Optional hover effect for editable form controls */
+    .form-control:not([readonly]):hover {
+        border-color: #999;
+    }
+
+    /* Add spacing between inline form groups */
+    .form-group.row > div {
+        margin-bottom: 8px;
+    }
+
+    /* ------------------------------
+           SECTION HEADERS & DIVIDERS
+        --------------------------------*/
+
+    h2 {
+        font-weight: 700;
+        color: #2c3e50;
+        margin-top: 20px;
+    }
+
+    .hr-line-dashed {
+        border-top: 1px dashed #c7c7c7;
+        margin: 15px 0 25px 0;
+    }
+
+    /* ------------------------------
+           TABLE STYLING
+        --------------------------------*/
+
+    .table {
+        background-color: #fff;
+        margin-top: 10px;
+    }
+
+        .table th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .table td,
+        .table th {
+            border-color: #dcdcdc;
+            vertical-align: middle;
+            padding: 8px 12px;
+        }
+
+    .table-bordered tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    /* ------------------------------
+           BUTTONS (optional)
+        --------------------------------*/
+
+    .btn-primary {
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 4px;
+    }
+
+    .hide {
+        display: none !important;
+    }
+
+    /* ------------------------------
+           RESPONSIVE FIXES
+        --------------------------------*/
+
+    @@media (max-width: 768px) {
+        .col-form-label {
+            text-align: left !important;
+            padding-top: 0;
+            padding-bottom: 2px;
+        }
+
+        .form-group.row > div {
+            margin-bottom: 12px;
+        }
+    }
+
+    .table thead th {
+        background-color: #000;
+        color: #fff;
+    }
+
+    .btn-primary {
+        background-color: #000 !important;
+        border-color: #000 !important;
+    }
+</style>

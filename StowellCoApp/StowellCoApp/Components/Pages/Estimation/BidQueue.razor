@@ -1,0 +1,308 @@
+﻿@page "/Estimation/BidQueue"
+@inherits BidQueueBase
+@using StowellCoApp.Components.Layout
+@layout MainLayout
+@using Radzen
+@using Radzen.Blazor
+@inject IJSRuntime JS
+@using StowellCoApp.DTO
+@using StowellCoApp.Components.Pages.Estimation
+<PageTitle>Bid Queue</PageTitle>
+@if (isLoading)
+{
+    <div class="spinner">Loading...</div>
+}
+else
+{
+    <div class="card-header">
+        <h4 class="m-0">Open Queue</h4>
+    </div>
+
+    <div class="dashboard-container">
+
+        <div class="gridcard">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <!-- Left: Search box with icon -->
+                @*   <div style="display: flex; align-items: center; /* gap: 8px; */">
+                <RadzenIcon Icon="search"
+                            style="
+                    cursor: pointer;
+                    background-color: #01355f;
+                    padding: 8px;
+                    border-radius: 4px;
+                    color: #fff;
+                    font-size: 18px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    height: 36px;
+                    width: 36px;
+border-bottom-right-radius:0;
+border-top-right-radius:0" />
+                <RadzenTextBox @bind-Value="searchTerm"
+                               Placeholder="Search..."
+                               Style="width: 300px; height: 36px; font-size: 14px;" @oninput="OnInputChanged" />
+            </div> *@
+                @* <div style="display:flex; align-items:center; gap:5px;">
+                <span>Show</span>
+                <RadzenDropDown @bind-Value="selectedPageSize" Data="pageSizes" Style="width:80px;" Change="OnPageSizeChanged" />
+                <span>entries</span>
+            </div> *@
+
+            </div>
+
+
+            <RadzenDataGrid @ref="openBidQueueGrid" Data="@filteredOpenBids" TItem="BidItem" ColumnWidth="200px" AllowPaging="false" PageSize="@pageSize" AllowSorting="true" AllowFiltering="true"
+                            ShowPagingSummary="true" Count="@(filteredOpenBids!=null ?filteredOpenBids.Count():0)">
+                <Columns>
+                    <!-- Hyperlink column -->
+                    <RadzenDataGridColumn TItem="BidItem" Title="Project Number">
+                        <Template Context="bidItem">
+                            <a href="/Estimation/EditBidForm/@bidItem.JobID">@bidItem.JobID</a>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="BidItem" Title="Bid Date" Property="BidDate">
+                        <Template Context="data">
+                            @data.BidDate.ToString("MM/dd/yyyy", UsCulture)
+                        </Template>
+                    </RadzenDataGridColumn>
+                    @* <RadzenDataGridColumn TItem="BidItem" Property="BidDate" Title="Bid Date" Type="typeof(DateTime)" FormatString="{0:MM/dd/yyyy}" /> *@
+                    <RadzenDataGridColumn TItem="BidItem" Property="Address" Title="Project" />
+                    <RadzenDataGridColumn TItem="BidItem" Property="Submitter" Title="Submitter" />
+                </Columns>
+            </RadzenDataGrid>
+
+        </div>
+
+    </div>
+    <div class="card-header">
+        <h4 class="m-0">Closed Bid</h4>
+    </div>
+    <div class="dashboard-container">
+
+        <div class="gridcard">
+            <RadzenDataGrid @ref="closedBidQueueGrid" Data="@filteredClosedBids" TItem="BidItem" ColumnWidth="200px" AllowPaging="false" PageSize="@pageSize" AllowSorting="true" AllowFiltering="true"
+                            ShowPagingSummary="true" Count="@(filteredClosedBids!=null ?filteredClosedBids.Count():0)">
+                <Columns>
+                    <!-- Hyperlink column -->
+                    <RadzenDataGridColumn TItem="BidItem" Title="Project Number">
+                        <Template Context="bidItem">
+                            <a href="/Estimation/EditBidForm/@bidItem.JobID">@bidItem.JobID</a>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="BidItem" Title="Bid Date" Property="BidDate">
+                        <Template Context="data">
+                            @data.BidDate.ToString("MM/dd/yyyy", UsCulture)
+                        </Template>
+                    </RadzenDataGridColumn>
+                    @* <RadzenDataGridColumn TItem="BidItem" Property="BidDate" Title="Bid Date" Type="typeof(DateTime)" FormatString="{0:MM/dd/yyyy}" /> *@
+                    <RadzenDataGridColumn TItem="BidItem" Property="Address" Title="Project" />
+                    <RadzenDataGridColumn TItem="BidItem" Property="Submitter" Title="Submitter" />
+                </Columns>
+            </RadzenDataGrid>
+
+        </div>
+    </div>
+    <div class="card-header">
+        <h4 class="m-0">Pending Project</h4>
+    </div>
+    <div class="dashboard-container">
+
+        <div class="gridcard">
+            <RadzenDataGrid @ref="pendingBidQueueGrid" Data="@filteredPendingBids" TItem="BidItem" ColumnWidth="200px" AllowPaging="false" PageSize="@pageSize" AllowSorting="true" AllowFiltering="true"
+                            ShowPagingSummary="true" Count="@(filteredPendingBids!=null ?filteredPendingBids.Count():0)">
+                <Columns>
+                    <!-- Hyperlink column -->
+                    <RadzenDataGridColumn TItem="BidItem" Title="Project Number">
+                        <Template Context="bidItem">
+                            <a href="/Estimation/EditBidForm/@bidItem.JobID">@bidItem.JobID</a>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    @* <RadzenDataGridColumn TItem="BidItem" Property="BidDate" Title="Bid Date" Type="typeof(DateTime)" FormatString="{0:MM/dd/yyyy}"  /> *@
+                    <RadzenDataGridColumn TItem="BidItem" Title="Bid Date" Property="BidDate">
+                        <Template Context="data">
+                            @data.BidDate.ToString("MM/dd/yyyy", UsCulture)
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="BidItem" Property="Address" Title="Project" />
+                    <RadzenDataGridColumn TItem="BidItem" Property="Submitter" Title="Submitter" />
+                </Columns>
+            </RadzenDataGrid>
+
+        </div>
+
+    </div>
+}
+<style>
+    .content-wrapper {
+        width: 90%;
+    }
+
+    .dashboard-container {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+        flex-wrap: nowrap;
+        margin-bottom: 10px;
+    }
+
+    .chartcard {
+        flex: 0 0 49%; /* two columns with a small gap */
+        background-color: white;
+        border-radius: 12px;
+        padding: 5px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-sizing: border-box;
+    }
+
+    .calendardashboard-container {
+        display: flex;
+        flex-direction: row; /* 🔥 keep items side-by-side */
+        align-items: stretch; /* make both same height */
+        gap: 10px;
+        height: calc(100vh - 250px); /* adjust as needed */
+        overflow: hidden;
+        margin-bottom: 10px;
+    }
+
+    /* Left image card */
+    .card {
+        flex: 0 0 30%; /* 30% width of row */
+        background-color: white;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+        .card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* keeps aspect ratio */
+            border-radius: 8px;
+        }
+
+    /* Right calendar */
+    .calendar-container {
+        flex: 1; /* take remaining width */
+        display: flex;
+        flex-direction: column;
+        background-color: white;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    /* Scheduler wrapper ensures proper sizing */
+    .scheduler-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        min-height: 0; /* prevents flex collapse */
+    }
+
+    /* Make RadzenScheduler fill available height */
+    .calendar-container ::deep .rz-scheduler {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+    }
+
+    /* Optional scroll inside scheduler */
+    .calendar-container ::deep .rz-scheduler-content {
+        flex: 1;
+        overflow: auto;
+    }
+
+    /* Custom List button */
+    .scheduler-custom-button {
+        position: absolute;
+        top: 9px;
+        /* Move it slightly after the Day button area */
+        right: auto;
+        left: 385px; /* adjust this until it aligns visually */
+        z-index: 2;
+        padding: 9px;
+        height: auto;
+        line-height: 1.25rem;
+        min-height: 2.25rem;
+        min-width: 2.25rem;
+        font-size: var(--rz-body-font-size);
+        font-weight: 600;
+    }
+
+    /* Give space for the List button */
+    .calendar-container ::deep .rz-scheduler-header {
+        padding-right: 60px;
+    }
+
+    .rz-button.rz-primary.rz-shade-default {
+        background-color: var(--rz-scheduler-view-selected-background-color);
+        color: var(--rz-on-primary);
+    }
+
+    .gridcard {
+        display: flex;
+        flex-direction: column;
+        flex: 1; /* take full height available */
+        background-color: white;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+        /* Make the Radzen grid stretch inside the card */
+        .gridcard ::deep .rz-datagrid {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* ensures the grid fills parent */
+        }
+
+        /* Optional: Scroll only grid content (not header/footer) */
+        .gridcard ::deep .rz-datatable-tablewrapper {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+    .card-header {
+        padding: 10px 0;
+        border-bottom: 1px solid #ccc;
+        margin-bottom: 2px;
+        font-weight: normal;
+    }
+
+        .card-header h4 {
+            text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+            color: #676a6c !important;
+            font-weight: 500;
+        }
+
+    .rz-grid-table thead th {
+        background-color: var(--rz-series-1);
+    }
+
+        .rz-grid-table thead th .rz-column-title, .rz-grid-filter-icon {
+            color: #fff;
+        }
+
+    .spinner {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 20px;
+        font-weight: bold;
+        color: #FE866D;
+    }
+</style>

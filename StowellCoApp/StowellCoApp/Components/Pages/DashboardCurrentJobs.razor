@@ -1,0 +1,261 @@
+﻿@using Radzen
+@using Radzen.Blazor
+@using StowellCoApp.DTO
+@using StowellCoApp.Services
+<AuthorizeView>
+    <Authorized>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <!-- Left: Search box with icon -->
+           
+            <div style="display: flex; align-items: center; /* gap: 8px; */">
+                <RadzenIcon Icon="search"
+                            style="
+                    cursor: pointer;
+                    background-color: #000;
+                    padding: 8px;
+                    border-radius: 4px;
+                    color: #fff;
+                    font-size: 18px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    height: 36px;
+                    width: 36px;
+border-bottom-right-radius:0;
+border-top-right-radius:0
+                " />
+                <RadzenTextBox @bind-Value="searchTerm"
+                               Placeholder="Search jobs..."
+                               Style="width: 300px; height: 36px; font-size: 14px;" @oninput="OnInputChanged" />
+            </div>
+            <div style="display:flex; align-items:center; gap:5px;">
+                <span>Show</span>
+                <RadzenDropDown @bind-Value="selectedPageSize" Data="pageSizes" Style="width:80px;" Change="OnPageSizeChangedInput" />
+                <span>entries</span>
+            </div>
+
+        </div>
+
+       
+        
+
+        <RadzenDataGrid 
+            @ref="grid" 
+            Data="@filteredJobs"
+            TItem="CurrentJob"
+           
+            AllowPaging="true" PageSize="@pageSize" AllowSorting="true" AllowFiltering="true"
+                     ShowPagingSummary="true"  Count="@(filteredJobs != null ? filteredJobs.Count() : 0)">
+            <Columns>
+                <!-- Hyperlink column -->
+                <RadzenDataGridColumn TItem="CurrentJob" Title="Job ID">
+                    <Template Context="job">
+                <a href="@($"/ProjectManagement/ProjectOverview/{job.JobID}")">@job.JobID</a>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="CurrentJob" Property="JobName" Title="Job Name" />
+               
+            </Columns>
+        </RadzenDataGrid>
+    </Authorized>
+    <NotAuthorized>
+        <p>Please log in to view jobs.</p>
+    </NotAuthorized>
+</AuthorizeView>
+@code{
+    [Inject]
+    public IJobService JobService { get; set; }
+    [Inject]
+    private ILogger<CurrentJobs> logger { get; set; } = default!;
+    private RadzenDataGrid<CurrentJob> grid;
+    private IEnumerable<CurrentJob> filteredJobs;
+    private string searchTerm = string.Empty;
+    private IEnumerable<CurrentJob> jobs;
+    private IEnumerable<CurrentJob> pagedJobs;
+    private CancellationTokenSource cts = new();
+    RadzenDataGrid<CurrentJob> dataGrid;
+    IEnumerable<int> pageSizeOptions = new int[] { 10, 20, 50 };
+    IEnumerable<CurrentJob> orderDetails;
+    bool showPagerSummary = true;
+
+    async Task FirstPage()
+    {
+        await dataGrid.FirstPage();
+    }
+    async Task TenthPage()
+    {
+        await dataGrid.GoToPage(9);
+    }
+    async Task LastPage()
+    {
+        await dataGrid.LastPage();
+    }
+    void OnPage(PagerEventArgs args)
+    {
+        //
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) // important to avoid infinite loops
+        {
+            try
+            {
+                jobs = await JobService.GetCurrentJobs();
+                logger.LogInformation("filteredJobs start");
+                filteredJobs = jobs;
+                orderDetails = jobs;
+                logger.LogInformation($"filteredJobs end{filteredJobs.Count()}");
+                StateHasChanged(); // optional, usually not needed in firstRender
+            }
+            catch (Exception ex)
+            {
+                logger.LogInformation($"Error loading jobs: {ex.Message}");
+                Console.WriteLine($"Error loading jobs: {ex.Message}");
+            }
+        }
+    }
+    private async Task OnInputChanged(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        searchTerm = args.Value?.ToString() ?? string.Empty;
+
+        // Cancel previous debounce
+        cts.Cancel();
+        cts = new CancellationTokenSource();
+        var token = cts.Token;
+
+        try
+        {
+            await Task.Delay(300, token); // debounce 300ms
+
+            if (token.IsCancellationRequested) return;
+
+            FilterJobs();
+        }
+        catch (TaskCanceledException)
+        {
+            // ignore
+        }
+    }
+
+    private void FilterJobs()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredJobs = jobs;
+        }
+        else
+        {
+            filteredJobs = jobs.Where(j =>
+                (j.JobID?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (j.JobName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (j.Address?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (j.CreatedBy?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (j.Status?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+            );
+        }
+
+        grid.Reload();
+    }
+    private string selectedPageSize = "15"; // default
+    private string[] pageSizes = new string[] { "10","15", "20", "50", "All" };
+    private int pageSize = 15;
+    private int currentPage = 0;
+    private void OnPageSizeChanged(int newPageSize)
+    {
+        pageSize = newPageSize;
+        currentPage = 0; // reset to first page
+        ApplyPaging();
+    }
+    private void OnPageSizeChangedInput(object value)
+    {
+        selectedPageSize = value.ToString();
+
+        if (selectedPageSize == "All")
+        {
+            // Show all records
+            pageSize = filteredJobs?.Count() ?? 0;
+        }
+        else
+        {
+            pageSize = Convert.ToInt32(selectedPageSize);
+        }
+
+        currentPage = 0;
+
+        // Refresh the grid and pager
+        grid.GoToPage(0);
+        grid.Reload();
+    }
+
+    private void ApplyPaging()
+    {
+        if (pageSize == 0)
+        {
+            pagedJobs = filteredJobs;
+        }
+        else
+        {
+            pagedJobs = filteredJobs
+                .Skip(currentPage * pageSize)
+                .Take(pageSize);
+        }
+        grid?.Reload();
+    }
+    private async Task OnLoadData(LoadDataArgs args)
+    {
+        // Handle search
+        filteredJobs = string.IsNullOrWhiteSpace(searchTerm)
+            ? jobs
+            : jobs.Where(j =>
+                (j.JobID?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (j.JobName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (j.Address?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (j.Status?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false));
+
+        // Handle paging
+        pagedJobs = pageSize == 0
+            ? filteredJobs
+            : filteredJobs.Skip(args.Skip ?? 0).Take(args.Top ?? pageSize);
+
+        StateHasChanged();
+    }
+
+        
+private void OnPageChanged(int newPageIndex)
+{
+    currentPage = newPageIndex;
+    ApplyPaging();
+}
+}
+<style>
+    /* Put SUMMARY on its own line */
+    .rz-pager-summary {
+        display: block;
+        width: 100%;
+        margin-bottom: 6px;
+    }
+
+    /* Make the TWO pager sections share one row */
+    .rz-pager .rz-pager-pages {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+    }
+
+        /* Prevent Radzen from forcing internal wrapping */
+        .rz-pager .rz-paginator,
+        .rz-pager .rz-pager-pages > div {
+            white-space: nowrap;
+            flex-wrap: nowrap !important;
+        }
+
+    .rz-grid-table thead th {
+        background-color: #000;
+    }
+
+        .rz-grid-table thead th .rz-column-title, .rz-grid-filter-icon {
+            color: #fff;
+        }
+
+</style>

@@ -1,0 +1,264 @@
+﻿@page "/CostCodeSummary/{ProjectId:int}"
+@inherits CostCodeSummaryBase
+@using Radzen
+@using Radzen.Blazor
+@using StowellCoApp.DTO
+@using StowellCoApp.Services
+@using System.Globalization
+
+<PageTitle>Cost Code Summary Report</PageTitle>
+
+@* if (Model == null || Model.CostCodeSummaryModel == null)
+{
+    <p><em>Loading...</em></p>
+     Prevent early rendering and exceptions 
+    return;
+} *@
+
+<h3>Current Cost Summary</h3>
+<hr />
+
+<div class="row form-horizontal white-bg p-10 my-3">
+
+    <!-- LEFT PANEL -->
+    <div class="col-lg-12">
+        <div id="panel-1">
+
+            <div>
+               @*  <form id="summaryForm" method="post"> *@
+
+                    <fieldset>
+                        <div class="form-row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Job Number</label><br />
+                                @* <RadzenDropDown Data="@Model.Jobs"
+                                                TextProperty="FullJob"
+                                                ValueProperty="RecNum"
+                                                @bind-Value="selectedProjectId"
+                                                Placeholder="Select Job Number"
+                                                Style="width:345px" /> *@
+
+                            <RadzenDropDown Data="@Model.Jobs"
+                                            TextProperty="FullJob"
+                                            ValueProperty="Recnum"
+                                            @bind-Value="selectedProjectId" Change="OnJobChanged"
+                                            Placeholder="Select ProjectId" Style="width:345px" />
+
+                            </div>
+                       
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Cost Code</label><br />
+                                <RadzenDropDown TValue="List<string>"
+                                                Multiple="true"
+                                                Data="@Model.CostCodes"
+                                                TextProperty="Description"
+                                                ValueProperty="Description"
+                                                @bind-Value="SelectedCostCodes"
+                                                Change="OnCostCodeChange"
+                                                AllowFiltering="true"
+                                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                Placeholder="Select cost codes"
+                                                Style="width:345px" />
+                            </div>
+                       
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Phase</label><br />
+                                <RadzenDropDown Data="@Model.Phases"
+                                                TextProperty="PhaseName"
+                                                ValueProperty="PhaseNum"
+                                                @bind-Value="selectedPhaseId"
+                                                Placeholder="Select Phase"
+                                                Style="width:345px" />
+
+                            </div>
+                          
+                        </div>
+
+
+                        <div class="form-row">
+                            <div class="col-md-4 mb-3">
+
+                            <RadzenStack Orientation="Radzen.Orientation.Vertical"
+                                             JustifyContent="JustifyContent.Left"
+                                             AlignItems="AlignItems.Start"
+                                             Gap="0.5rem">
+
+                                    <RadzenLabel Text="Start Date"
+                                                 Component="DatePicker"
+                                                 class="form-label"
+                                                 Style="margin-left:2px; color:#212529; font-weight:normal;" />
+
+                                    <RadzenDatePicker @bind-Value="StartDate"
+                                                      DateFormat="dd-MM-yyyy" Placeholder="dd-MM-yyyy" Culture="@UsCulture"/>
+
+
+                                </RadzenStack>
+
+                            </div>
+                       
+                            <div class="col-md-4 mb-3">
+                            <RadzenStack Orientation="Radzen.Orientation.Vertical"
+                                             JustifyContent="JustifyContent.Left"
+                                             AlignItems="AlignItems.Start"
+                                             Gap="0.5rem">
+
+                                    <RadzenLabel Text="End Date"
+                                                 Component="DatePicker"
+                                                 class="form-label"
+                                                 Style="margin-left:2px; color:#212529; font-weight:normal;" />
+
+                                    <RadzenDatePicker @bind-Value="EndDate"
+                                                      DateFormat="dd-MM-yyyy" Placeholder="dd-MM-yyyy" Culture="@UsCulture" />
+
+
+                                </RadzenStack>
+                            </div>
+                            <div class="col-md-4 mt-4">
+                                <RadzenButton Text="Submit" Style="background-color:var(--rz-series-1);" Click="OnSubmitClick"/>
+                            </div>
+                        </div>
+                    </fieldset>
+
+             @*    </form> *@
+            </div>
+        </div>
+    </div>
+   
+    <!-- RIGHT PANEL -->
+    <div class="col-lg-12">
+        <div id="panel-1">
+            <fieldset>
+                <div class="form-row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Job Name</label>
+                        <input type="text" class="form-control"
+                               id="txtJobName"
+                               value="@Model.SelectedJobName" disabled />
+                    </div>
+              
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Budget + Change</label>
+                        <input class="form-control"
+                               value="@Model.CostCodeSummaryModel.SumOfBudgetAndChanges.ToString("C", CultureInfo.GetCultureInfo("en-US"))" disabled />
+                    </div>
+               
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">To Date</label>
+                        <input class="form-control"
+                               value="@Model.CostCodeSummaryModel.SumOfToDate.ToString("C", CultureInfo.GetCultureInfo("en-US"))" disabled />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">This Period</label>
+                        <input class="form-control"
+                               value="@Model.CostCodeSummaryModel.SumOfThisPeriod.ToString("C", CultureInfo.GetCultureInfo("en-US"))" disabled />
+                    </div>
+                
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Remaining</label>
+                        <input class="form-control"
+                               value="@Model.CostCodeSummaryModel.SumOfRemaining.ToString("C", CultureInfo.GetCultureInfo("en-US"))" disabled />
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+
+</div>
+<hr />
+<!-- Search + page size -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+
+    <div style="display:flex; align-items:center;">
+        <RadzenIcon Icon="search"
+                    style="cursor:pointer;background-color:#000;
+                           padding:8px;border-radius:4px;color:white;
+                           height:36px;width:36px;
+                           border-bottom-right-radius:0;
+                           border-top-right-radius:0;" />
+        <RadzenTextBox @bind-Value="searchTerm"
+                       Style="width:300px;height:36px;font-size:14px;"
+                       @oninput="OnInputChanged" />
+    </div>
+
+    <div style="display:flex;align-items:center;gap:5px;">
+        <span>Show</span>
+        <RadzenDropDown @bind-Value="selectedPageSize"
+                        Data="pageSizes"
+                        Style="width:80px;"
+                        Change="OnPageSizeChangedInput" />
+        <span>entries</span>
+
+        <div style="display:flex;gap:5px;">
+            <RadzenButton Text="Copy to clipboard" Click="CopyAllToClipboard" Style="margin-right:5px;background-color:var(--rz-series-1);" />
+
+            <RadzenButton Text="Export CSV" Click="ExportCsvManual" Style="margin-right:5px;background-color:var(--rz-series-1);" />
+            <RadzenButton Text="Export PDF" Click="ExportPdf" Style="margin-right:5px;background-color:var(--rz-series-1);" />
+            <RadzenButton Text="Export Excel" Click="ExportExcel" Style="background-color:var(--rz-series-1);" />
+        </div>
+    </div>
+
+</div>
+
+<!-- DATA GRID -->
+<RadzenDataGrid @ref="grid"
+                Data="@filteredJobs"
+                TItem="CostCodeSummaryRecord"
+                AllowPaging="true"
+                PageSize="@pageSize"
+                AllowSorting="true"
+                AllowFiltering="true"
+                ShowPagingSummary="true"
+                Count="@filteredJobs.Count()">
+
+    <Columns>
+        <RadzenDataGridColumn TItem="CostCodeSummaryRecord" Title="Job ID">
+            <Template Context="job">
+                <a>@job.JobNumber</a>
+            </Template>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="CostCodeSummaryRecord" Property="CostCode" Title="Cost Code" />
+        <RadzenDataGridColumn TItem="CostCodeSummaryRecord" Property="CostCodeDescription" Title="Cost Code Description" />
+        <RadzenDataGridColumn TItem="CostCodeSummaryRecord" Property="BudgetAndChanges" Title="Budget & Changes" FormatString="{0:C2}" />
+        <RadzenDataGridColumn TItem="CostCodeSummaryRecord" Property="ToDate" Title="To Date" FormatString="{0:C2}" />
+        <RadzenDataGridColumn TItem="CostCodeSummaryRecord" Property="ThisPeriod" Title="This Period" FormatString="{0:C2}" />
+        <RadzenDataGridColumn TItem="CostCodeSummaryRecord" Property="Remaining" Title="Remaining" FormatString="{0:C2}" />
+    </Columns>
+</RadzenDataGrid>
+
+
+<style>
+    .rz-pager-summary {
+        display: block;
+        width: 100%;
+        margin-bottom: 6px;
+    }
+
+    .rz-pager .rz-pager-pages {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .rz-pager .rz-paginator,
+        .rz-pager .rz-pager-pages > div {
+            white-space: nowrap;
+            flex-wrap: nowrap !important;
+        }
+
+    .rz-grid-table thead th {
+        background-color: var(--rz-series-1);
+    }
+
+        .rz-grid-table thead th .rz-column-title, .rz-grid-filter-icon {
+            color: #fff;
+        }
+
+    .rz-datepicker, .form-control {
+        width:90%;
+    }
+</style>
